@@ -75,9 +75,9 @@ over HTTP rather than opened directly as a file.
   HTML/CSS/JS/JSON files are served as-is.
 - **Local testing**:
   ```bash
-  python -m http.server 8000 --directory quiz
+  python -m http.server 8000 --directory .
   ```
-  then open `http://localhost:8000/interview.html`.
+  then open `http://localhost:8000/quiz/interview.html`. The repository root must be served so QFI can load its interview-question guide from `knowledge/`.
 
 ## Status
 

@@ -1,5 +1,6 @@
 const QUESTION_COUNT = 20;
 const SEEN_KEY = "clustercraft-seen-questions";
+const QFI_SEEN_KEY = "clustercraft-qfi-seen-questions";
 const HISTORY_KEY = "clustercraft-score-history";
 
 // Knowledge base docs live in the same repo; more topic files land here over time.
@@ -406,6 +407,8 @@ function learnMoreLink(category) {
 
 const state = {
   questions: [],
+  quizQuestions: [],
+  qfiQuestions: [],
   current: 0,
   answers: [],
   mode: "practice",
@@ -496,6 +499,321 @@ function escapeHTML(value) {
       '"': "&quot;"
     }[char])
   );
+}
+
+
+const TECHNICAL_TERMS = new Set(
+  `alb alert alertmanager ami ansible api application apply architecture artifact autoscaling availability aws backup backend branch build canary certificate ci cd cloud cloudformation cloudfront cloudwatch cluster config configuration container controller count cpu cronjob cve cdk cni crashloopbackoff credential daemonset database deployment devops digest disaster disk docker dockerfile dns drift ebs ec2 ecr eks elasticsearch endpoint entrypoint error errors exporter failover file filesystem firewall fluentbit foreach gateway git gitops github githubactions grafana graceful helm hpa http https iam iac image incident infrastructure init internet interpreter jenkins jaeger job json kibana kubectl kubernetes kubelet latency leadership linux loadbalancer localexec log logstash metric microservice monitoring nat network networkpolicy nginx node nlb oauth oidc opentelemetry oom ownership p1 php permission pipeline pod poddisruptionbudget policy process prometheus promql provisioner probe provider proxy pvc rbac rca rds readiness recovery release replica repository request resource response rollback root route rpo rto runtime s3 sast scale scaling sca scrape script secret security server service sdlc shebang shell shutdown signal sla sli slo snapshot socket ssh ssl state statefulset status sticky subnet suid systemd target tcp terraform test tf tls trace tracing traffic troubleshoot uptime variable vpc volume workflow yaml`
+    .toLowerCase()
+    .split(" ")
+    .map(normalizeAnswerWord)
+);
+const TECHNICAL_PHRASES = [
+  "alb listener",
+  "availability zone",
+  "blue-green deployment",
+  "bash script",
+  "cloudwatch alarm",
+  "container image",
+  "continuous delivery",
+  "continuous integration",
+  "ci cd",
+  "distributed tracing",
+  "disaster recovery",
+  "error budget",
+  "error rate",
+  "exit code",
+  "for each",
+  "graceful shutdown",
+  "health check",
+  "http 5xx",
+  "horizontal pod autoscaler",
+  "iam policy",
+  "iam role",
+  "image pull secret",
+  "internet gateway",
+  "jenkins credentials",
+  "jenkins home directory",
+  "git checkout",
+  "git repository",
+  "least privilege",
+  "load balancer",
+  "liveness probe",
+  "multi-stage build",
+  "local exec",
+  "nat gateway",
+  "network policy",
+  "persistent volume claim",
+  "pod disruption budget",
+  "production incident",
+  "release rollback",
+  "remote exec",
+  "readiness probe",
+  "remote backend",
+  "request latency",
+  "reverse proxy",
+  "route table",
+  "secret manager",
+  "security group",
+  "service account",
+  "service discovery",
+  "service selector",
+  "service level indicator",
+  "service level objective",
+  "service-to-pod connectivity",
+  "sticky bit",
+  "startup probe",
+  "state locking",
+  "terraform state",
+  "version control",
+  "personal access token",
+  "docker registry",
+  "declarative pipeline",
+  "root cause analysis",
+  "roll back",
+  "http 503",
+  "http 502",
+  "5xx error",
+  "file permission"
+];
+const QUESTION_TECHNICAL_RUBRICS = {
+  1: ["devops", "ci cd", "terraform", "kubernetes", "aws", "monitoring"],
+  4: ["logging", "fluentbit", "elasticsearch", "kibana", "logstash"],
+  28: ["automation", "ci cd", "monitoring", "metrics", "deployment"],
+  29: ["metrics", "logs", "traces", "deployment", "rollback", "dependencies"],
+  36: ["dns", "tcp", "tls", "http", "load balancer"],
+  41: ["terraform", "count", "for each", "resource", "state"],
+  45: ["terraform", "local exec", "remote exec", "provisioner", "ssh"],
+  49: ["sdlc", "ci cd", "automation", "deployment", "monitoring"],
+  57: ["iac", "terraform", "state", "module", "version control"],
+  62: ["bash", "shell", "script", "automation", "exit code"],
+  121: ["incident", "metrics", "logs", "rollback", "root cause analysis"],
+  140: ["incident", "metrics", "logs", "traces", "mitigation", "root cause analysis"],
+  141: ["deployment", "secret", "least privilege", "monitoring", "rollback"],
+  198: ["architecture", "ci cd", "aws", "terraform", "kubernetes", "monitoring"],
+  205: ["jenkins", "jenkins home directory", "workspace", "plugin", "configuration"],
+  206: ["github", "jenkins", "git checkout", "git repository", "credentials"],
+  207: ["jenkins", "github", "plugin", "webhook", "source control"],
+  208: ["docker", "jenkins credentials", "docker registry", "secret", "pipeline"],
+  209: ["github", "jenkins", "ssh", "personal access token", "credentials"],
+  210: ["jenkins", "declarative pipeline", "stage", "agent", "credentials"],
+  218: ["terraform", "hcl", "provider", "resource", "configuration"],
+  230: ["dns", "route table", "security group", "load balancer", "ingress"],
+  240: ["deployment", "rollback", "health check", "artifact", "canary"],
+  254: ["pod disruption budget", "availability", "replica", "drain"],
+  265: ["fluentbit", "logstash", "elasticsearch", "kibana", "microservice"],
+  268: ["ingress", "service", "endpoint", "readiness probe", "pod"],
+  270: ["gitops", "argocd", "kubernetes", "rbac", "release"],
+  317: ["http 502", "http 503", "load balancer", "ingress", "endpoint"],
+  327: ["infrastructure", "compute", "network", "storage", "cloud"],
+  330: ["ci cd", "aws", "terraform", "docker", "kubernetes", "prometheus"],
+  346: ["iac", "terraform", "state", "module", "version control"],
+  353: ["dns", "tcp", "tls", "http", "load balancer", "ingress"],
+  354: ["wordpress", "php", "mysql", "nginx", "tls", "database"],
+  355: ["shebang", "bash", "shell", "interpreter", "script", "permission"],
+  368: ["signal", "graceful shutdown", "process", "container", "kubernetes"],
+  379: ["service-to-pod connectivity", "service", "endpoint", "selector", "network policy"],
+  404: ["server", "process", "port", "firewall", "logs"],
+  409: ["release rollback", "deployment", "artifact", "health check", "terraform state"],
+  412: ["http 5xx", "service", "endpoint", "readiness probe", "ingress", "pod"],
+  420: ["logs", "metrics", "traces", "correlation", "alert"],
+  421: ["root cause analysis", "incident", "timeline", "impact", "remediation", "prevention"],
+  423: ["disaster recovery", "backup", "failover", "rpo", "rto"],
+  432: ["infrastructure", "compute", "network", "storage", "cloud"],
+  435: ["ci cd", "aws", "terraform", "docker", "kubernetes", "prometheus"],
+  445: ["ingress", "service", "endpoint", "readiness probe", "pod"],
+  447: ["gitops", "argocd", "kubernetes", "rbac", "release"]
+};
+const HUMAN_READABLE_CONNECTORS = new Set(
+  "a an and are as at be because by can for from has have if in into is it of on or should so that the then these this to was were when which while will with would".split(" ")
+);
+const ANSWER_ACTION_WORDS = new Set(
+  "allow apply build check choose compare configure connect control collect create define deploy determine detect enable ensure evaluate explain expose handle identify maintain manage monitor prevent provide reconcile reduce remove replace require restart return route run scale schedule secure select send show store support use uses validate verify work".split(" ")
+);
+
+
+function parseQfiQuestionBank(markdown) {
+
+  const headings = [
+    ...markdown.matchAll(/^###\s+(\d+)\.\s+(.+?)\s*$/gm)
+  ];
+
+  return headings.map((heading, index) => {
+
+    const blockStart = heading.index + heading[0].length;
+    const blockEnd = headings[index + 1]?.index ?? markdown.length;
+    const block = markdown.slice(blockStart, blockEnd);
+    const answerStart = block.indexOf("**Answer:**");
+    const answerMarkdown = answerStart < 0
+      ? ""
+      : block
+          .slice(answerStart + "**Answer:**".length)
+          .split(/\r?\n(?:#{1,6}\s|---\s*$)/m)[0]
+          .trim();
+
+    return {
+      id: Number(heading[1]),
+      question: heading[2].trim(),
+      category: "Questions from interviews",
+      difficulty: "Open answer",
+      referenceAnswer: answerMarkdown
+        .replace(/\*\*|__|`/g, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .trim()
+    };
+  });
+}
+
+
+function normalizeAnswerWord(word) {
+
+  const irregularTerms = {
+    devops: "devops",
+    kubernetes: "kubernetes",
+    prometheus: "prometheus",
+    jenkins: "jenkins",
+    ingress: "ingress",
+    process: "process",
+    analysis: "analysis",
+    status: "status",
+    https: "https",
+    metrics: "metric",
+    logs: "log",
+    traces: "trace",
+    errors: "error",
+    applications: "application",
+    deployments: "deployment",
+    permissions: "permission",
+    provisioners: "provisioner",
+    policies: "policy",
+    services: "service",
+    volumes: "volume",
+    variables: "variable",
+    credentials: "credential",
+    resources: "resource",
+    processes: "process",
+    scripts: "script",
+    replicas: "replica",
+    targets: "target",
+    checks: "check",
+    modules: "module",
+    dependencies: "dependency"
+  };
+
+  if (irregularTerms[word]) {
+    return irregularTerms[word];
+  }
+
+  if (word.length > 5 && word.endsWith("ies")) {
+    return word.slice(0, -3) + "y";
+  }
+
+  if (word.length > 4 && word.endsWith("ing")) {
+    const stem = word.slice(0, -3);
+    return stem.length > 2 && stem.at(-1) === stem.at(-2)
+      ? stem.slice(0, -1)
+      : stem;
+  }
+
+  if (word.length > 4 && word.endsWith("s") && !word.endsWith("ss")) {
+    return word.slice(0, -1);
+  }
+
+  return word;
+}
+
+
+function getAnswerWords(text) {
+
+  return String(text || "")
+    .toLowerCase()
+    .match(/[a-z][a-z0-9+#]*(?:\.[a-z0-9+#]+)*/g)
+    ?.map(normalizeAnswerWord) || [];
+}
+
+
+function containsAnswerPhrase(words, phrase) {
+
+  const phraseWords = getAnswerWords(phrase);
+
+  return words.some((_, index) =>
+    phraseWords.every((word, offset) => words[index + offset] === word)
+  );
+}
+
+
+function getQfiKeyTerms(question) {
+
+  if (QUESTION_TECHNICAL_RUBRICS[question.id]) {
+    return QUESTION_TECHNICAL_RUBRICS[question.id];
+  }
+
+  const answerWords = getAnswerWords(question.referenceAnswer);
+  const genericAnswerPatterns = [
+    /^a strong senior-level answer should start/i,
+    /^a typical pipeline is/i,
+    /^start with the failed stage and console log/i,
+    /^use a remote, access-controlled backend/i,
+    /^authenticate the build agent to ecr/i
+  ];
+  const specificAnswer = !genericAnswerPatterns.some((pattern) =>
+    pattern.test(question.referenceAnswer)
+  );
+  const sourceWords = specificAnswer
+    ? answerWords
+    : getAnswerWords(question.question);
+  const phrases = TECHNICAL_PHRASES.filter((phrase) =>
+    containsAnswerPhrase(sourceWords, phrase)
+  );
+  const coveredWords = new Set(phrases.flatMap(getAnswerWords));
+  const terms = sourceWords.filter((word) =>
+    TECHNICAL_TERMS.has(word) && !coveredWords.has(word)
+  );
+
+  return [...new Set([...phrases, ...terms])].slice(0, 10);
+}
+
+
+function getAnswerReadabilityIssue(response) {
+
+  const words = getAnswerWords(response);
+  const connectors = words.filter((word) =>
+    HUMAN_READABLE_CONNECTORS.has(word)
+  ).length;
+  const hasAction = words.some((word) => ANSWER_ACTION_WORDS.has(word));
+  const commaSeparatedFragments = String(response)
+    .split(/[.!?;]+/)
+    .flatMap((sentence) => sentence.split(","))
+    .filter((fragment) => fragment.trim());
+  const isKeywordDump =
+    commaSeparatedFragments.length >= 4 &&
+    commaSeparatedFragments.every((fragment) => getAnswerWords(fragment).length <= 3);
+
+  return words.length < 7 || connectors < 2 || !hasAction || isKeywordDump
+    ? "Write a short, readable answer rather than a list of technical terms."
+    : "";
+}
+
+
+function scoreQfiAnswer(question, response) {
+
+  const keyTerms = getQfiKeyTerms(question);
+  const answerWords = getAnswerWords(response);
+  const matchedKeywords = keyTerms.filter((term) =>
+    containsAnswerPhrase(answerWords, term)
+  );
+  const missingKeywords = keyTerms.filter((term) =>
+    !containsAnswerPhrase(answerWords, term)
+  );
+
+  return {
+    keyTerms,
+    matchedKeywords,
+    missingKeywords,
+    percent: keyTerms.length
+      ? Math.round((matchedKeywords.length / keyTerms.length) * 100)
+      : 0
+  };
 }
 
 
@@ -717,6 +1035,36 @@ function makeQuestionSet(retry = false) {
 }
 
 
+function makeQfiSet(retry = false) {
+
+  if (retry && state.selectedSet.length) {
+    return state.selectedSet;
+  }
+
+  const seen = new Set(
+    JSON.parse(localStorage.getItem(QFI_SEEN_KEY) || "[]")
+  );
+  let fresh = shuffle(
+    state.qfiQuestions.filter((question) => !seen.has(question.id))
+  );
+
+  if (fresh.length < QUESTION_COUNT) {
+    localStorage.removeItem(QFI_SEEN_KEY);
+    seen.clear();
+    fresh = shuffle(state.qfiQuestions);
+    $("#cycle-label").textContent = "New QFI question cycle started";
+  }
+
+  const selected = fresh.slice(0, QUESTION_COUNT);
+  localStorage.setItem(
+    QFI_SEEN_KEY,
+    JSON.stringify([...seen, ...selected.map((question) => question.id)])
+  );
+
+  return selected;
+}
+
+
 // ============================================================
 // VIEW MANAGEMENT
 // ============================================================
@@ -743,17 +1091,21 @@ function showView(name) {
 
 function updateSetupMeta() {
 
-  const seen =
-    getSeenIds().length;
-
-  const totalQuestions =
-    state.questions.length || 500;
+  const qfiMode = state.mode === "qfi";
+  const seen = JSON.parse(
+    localStorage.getItem(qfiMode ? QFI_SEEN_KEY : SEEN_KEY) || "[]"
+  ).length;
+  const totalQuestions = qfiMode
+    ? state.qfiQuestions.length
+    : state.quizQuestions.length;
 
 
   $("#cycle-label").textContent =
     seen
-      ? `${seen} of ${totalQuestions} questions seen`
-      : "Fresh question cycle";
+      ? `${seen} of ${totalQuestions} ${qfiMode ? "QFI questions" : "questions"} seen`
+      : qfiMode
+        ? `${totalQuestions} interview questions · fresh cycle`
+        : "Fresh question cycle";
 
 
   $("#setup-history").textContent =
@@ -769,8 +1121,10 @@ function updateSetupMeta() {
 
 function startSession(retry = false) {
 
-  const set =
-    makeQuestionSet(retry);
+  const qfiMode = state.mode === "qfi";
+  const set = qfiMode
+    ? makeQfiSet(retry)
+    : makeQuestionSet(retry);
 
   if (!set) {
     return;
@@ -780,8 +1134,9 @@ function startSession(retry = false) {
   state.selectedSet =
     set;
 
-  state.questions =
-    prepareQuestions(set);
+  state.questions = qfiMode
+    ? set
+    : prepareQuestions(set);
 
   state.current =
     0;
@@ -890,6 +1245,7 @@ function renderQuestion() {
     state.questions[
       state.current
     ];
+  const qfiMode = state.mode === "qfi";
 
 
   $("#progress-text").textContent =
@@ -924,24 +1280,39 @@ function renderQuestion() {
 
   $("#question-type").classList.toggle(
     "hidden",
-    question.type !== "scenario"
+    qfiMode || question.type !== "scenario"
   );
 
 
   $("#question-title").textContent =
     question.question;
 
+  $("#question-kicker").textContent =
+    qfiMode ? `QFI · Source question ${question.id}` : "Question";
+
+  $("#question-difficulty").textContent =
+    qfiMode ? "Open answer" : question.difficulty;
+
+  $("#options").classList.toggle("hidden", qfiMode);
+  $("#qfi-answer-panel").classList.toggle("hidden", !qfiMode);
+  $("#qfi-feedback").classList.add("hidden");
+  $("#qfi-answer").value = "";
+  $("#qfi-answer").disabled = false;
+  $("#grade-answer-button").disabled = false;
+
 
   $("#answered-label").textContent =
-    state.mode === "practice"
-      ? "Choose the answer that best fits."
-      : "Commit to an answer before moving on.";
+    qfiMode
+      ? "Write a readable answer in your own words, then score its technical concepts."
+      : state.mode === "practice"
+        ? "Choose the answer that best fits."
+        : "Commit to an answer before moving on.";
 
 
   $("#next-button").textContent =
     state.current === QUESTION_COUNT - 1
-      ? "Finalize answer →"
-      : "Lock answer →";
+      ? qfiMode ? "Finish QFI →" : "Finalize answer →"
+      : qfiMode ? "Next question →" : "Lock answer →";
 
 
   $("#next-button").disabled =
@@ -954,7 +1325,7 @@ function renderQuestion() {
 
 
   $("#options").innerHTML =
-    question.options
+    (question.options || [])
       .map(
         (option, index) => `
           <button
@@ -993,6 +1364,48 @@ function renderQuestion() {
 
       }
     );
+}
+
+function submitQfiAnswer() {
+
+  const response = $("#qfi-answer").value.trim();
+  const readabilityIssue = getAnswerReadabilityIssue(response);
+
+  if (readabilityIssue) {
+    $("#qfi-feedback").innerHTML =
+      `<p>${escapeHTML(readabilityIssue)}</p>`;
+    $("#qfi-feedback").classList.remove("hidden");
+    return;
+  }
+
+  const question = state.questions[state.current];
+  const score = scoreQfiAnswer(question, response);
+  const answer = {
+    questionId: question.id,
+    response,
+    referenceAnswer: question.referenceAnswer,
+    ...score,
+    locked: true
+  };
+
+  state.answers[state.current] = answer;
+  $("#qfi-answer").disabled = true;
+  $("#grade-answer-button").disabled = true;
+  $("#next-button").disabled = false;
+
+  const keywordList = score.keyTerms.map((term) => {
+    const matched = score.matchedKeywords.includes(term);
+    return `<span class="qfi-keyword ${matched ? "matched" : "missing"}">${escapeHTML(term)}</span>`;
+  }).join("");
+
+  $("#qfi-feedback").innerHTML = `
+    <div class="qfi-score-line"><strong>${score.percent}%</strong><span>technical-term match</span></div>
+    <p>${score.matchedKeywords.length} of ${score.keyTerms.length} technical terms matched</p>
+    <div class="qfi-keywords">${keywordList}</div>
+    <details><summary>Reference answer</summary><p>${escapeHTML(question.referenceAnswer || "No reference answer is available for this question.")}</p></details>
+  `;
+  $("#qfi-feedback").classList.remove("hidden");
+  $("#answered-label").textContent = "Answer scored. Review the technical terms, then continue.";
 }
 
 
@@ -1224,6 +1637,30 @@ function finishSession() {
     state.timerId
   );
 
+  if (state.mode === "qfi") {
+    const gradedAnswers = state.answers.filter(Boolean);
+    const averageScore = gradedAnswers.length
+      ? Math.round(
+          gradedAnswers.reduce((total, answer) => total + answer.percent, 0) /
+            gradedAnswers.length
+        )
+      : 0;
+
+    saveHistory([
+      ...getHistory(),
+      {
+        score: averageScore,
+        total: 100,
+        mode: "QFI",
+        date: new Date().toISOString()
+      }
+    ]);
+
+    renderQfiResults(averageScore);
+    showView("results");
+    return;
+  }
+
 
   const score =
     state.answers.filter(
@@ -1265,11 +1702,44 @@ function finishSession() {
 }
 
 
+function renderQfiResults(averageScore) {
+
+  $("#results-title").textContent = "Your QFI results";
+  $("#new-set-button").innerHTML = "New QFI set <span>→</span>";
+  $("#score-value").textContent = `${averageScore}%`;
+  $("#score-detail").textContent = "average technical-term match across this round";
+  $("#results-view .result-panel .eyebrow").textContent = "Scoring method";
+  $("#category-results").innerHTML = `
+    <p class="muted">Each question is scored by the share of expected technical terms found in your answer. This is a keyword heuristic, not semantic grading.</p>
+  `;
+  $("#review-list").innerHTML = state.questions.map((question, index) => {
+    const answer = state.answers[index];
+    const keywords = (answer?.keyTerms || []).map((term) => {
+      const matched = answer.matchedKeywords.includes(term);
+      return `<span class="qfi-keyword ${matched ? "matched" : "missing"}">${escapeHTML(term)}</span>`;
+    }).join("");
+
+    return `
+      <article class="review-item qfi-review-item">
+        <header><h3>${index + 1}. ${escapeHTML(question.question)}</h3><span class="review-result ${answer?.percent < 50 ? "incorrect" : ""}">${answer?.percent ?? 0}% MATCH</span></header>
+        <p><strong>Your answer:</strong> ${escapeHTML(answer?.response || "Not answered")}</p>
+        <div class="qfi-keywords">${keywords}</div>
+        <details><summary>Reference answer</summary><p>${escapeHTML(question.referenceAnswer || "No reference answer is available for this question.")}</p></details>
+      </article>
+    `;
+  }).join("");
+}
+
+
 // ============================================================
 // RESULTS
 // ============================================================
 
 function renderResults(score) {
+
+  $("#results-title").textContent = "Your operating picture";
+  $("#results-view .result-panel .eyebrow").textContent = "By focus area";
+  $("#new-set-button").innerHTML = "New question set <span>→</span>";
 
   $("#score-value").textContent =
     `${Math.round(
@@ -1491,18 +1961,26 @@ function renderHistory() {
 
 async function init() {
 
-  const response =
-    await fetch(
-      "interview-questions.json"
-    );
+  const [quizResponse, qfiResponse] = await Promise.all([
+    fetch("interview-questions.json"),
+    fetch("../knowledge/scenario_based_questions.md")
+  ]);
 
+  if (!quizResponse.ok || !qfiResponse.ok) {
+    throw new Error("Could not load both question banks");
+  }
 
-  state.questions =
-    await response.json();
+  state.quizQuestions = await quizResponse.json();
+  state.questions = state.quizQuestions;
+  state.qfiQuestions = parseQfiQuestionBank(await qfiResponse.text());
+
+  if (state.qfiQuestions.length !== 452) {
+    throw new Error(`Expected 452 QFI questions, found ${state.qfiQuestions.length}`);
+  }
 
 
   $("#bank-count").textContent =
-    `${state.questions.length} questions`;
+    `${state.quizQuestions.length} quiz · ${state.qfiQuestions.length} QFI`;
 
 
   [
@@ -1585,6 +2063,20 @@ document.addEventListener(
 
               state.mode =
                 button.dataset.mode;
+
+              state.questions = state.mode === "qfi"
+                ? state.qfiQuestions
+                : state.quizQuestions;
+
+              const qfiMode = state.mode === "qfi";
+              $(".filters").classList.toggle("hidden", qfiMode);
+              $("#quick-filter-list").classList.toggle("hidden", qfiMode);
+
+              if (!qfiMode) {
+                renderQuickFilters();
+              }
+
+              updateSetupMeta();
             }
           );
 
@@ -1642,6 +2134,13 @@ document.addEventListener(
       );
 
 
+    $("#grade-answer-button")
+      .addEventListener(
+        "click",
+        submitQfiAnswer
+      );
+
+
     $("#quit-button")
       .addEventListener(
         "click",
@@ -1682,12 +2181,22 @@ document.addEventListener(
         () => {
 
           localStorage.removeItem(
-            SEEN_KEY
+            state.mode === "qfi" ? QFI_SEEN_KEY : SEEN_KEY
           );
 
           updateSetupMeta();
 
           startSession();
+        }
+      );
+
+
+    $("#change-session-button")
+      .addEventListener(
+        "click",
+        () => {
+          showView("setup");
+          updateSetupMeta();
         }
       );
 

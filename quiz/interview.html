@@ -19,7 +19,7 @@
         <span><strong>BitWise</strong><small>Interview lab</small></span>
       </a>
       <div class="topbar-actions">
-        <span id="bank-count" class="bank-count">100 questions</span>
+        <span id="bank-count" class="bank-count">Loading question banks</span>
         <button id="history-button" class="icon-button" type="button" title="View score history" aria-label="View score history">↗</button>
       </div>
     </header>
@@ -43,7 +43,7 @@
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Configure a session</p>
-              <h2>Choose your pressure level</h2>
+              <h2>Choose your session</h2>
             </div>
             <span class="mono-label">20 questions / round</span>
           </div>
@@ -57,6 +57,11 @@
               <span class="mode-number">02</span>
               <strong>Interview</strong>
               <span>25-minute timed round. Review everything at the end.</span>
+            </button>
+            <button class="mode-card" data-mode="qfi" type="button">
+              <span class="mode-number">03</span>
+              <strong>QFI</strong>
+              <span>Questions from interviews. Write answers and get a keyword-match score.</span>
             </button>
           </div>
           <div class="filters">
@@ -102,6 +107,15 @@
             <p id="question-kicker" class="eyebrow">Question</p>
             <h1 id="question-title">Loading question...</h1>
             <div id="options" class="options" role="radiogroup" aria-label="Answer choices"></div>
+            <div id="qfi-answer-panel" class="qfi-answer-panel hidden">
+              <label for="qfi-answer">Your answer</label>
+              <textarea id="qfi-answer" rows="7" maxlength="5000" placeholder="Write your answer in your own words..."></textarea>
+              <div class="qfi-answer-actions">
+                <span class="muted">Technical-term matching is a heuristic, not semantic grading.</span>
+                <button id="grade-answer-button" class="secondary-button" type="button">Score answer</button>
+              </div>
+              <div id="qfi-feedback" class="qfi-feedback hidden" aria-live="polite"></div>
+            </div>
             <div id="explanation" class="explanation hidden"></div>
             <div class="question-footer"><span id="answered-label" class="muted">Choose the answer that best fits.</span><button id="next-button" class="primary-button" type="button" disabled>Lock answer <span>→</span></button></div>
           </article>
@@ -110,7 +124,7 @@
 
       <section id="results-view" class="view results-view hidden" aria-labelledby="results-title">
         <div class="results-hero"><p class="eyebrow">Session complete</p><h1 id="results-title">Your operating picture</h1><div class="score-display"><strong id="score-value">0%</strong><span id="score-detail">0 of 20 correct</span></div></div>
-        <div class="results-grid"><div class="result-panel"><p class="eyebrow">By focus area</p><div id="category-results"></div></div><div class="result-panel"><p class="eyebrow">What next?</p><div class="next-actions"><button id="new-set-button" class="primary-button" type="button">New question set <span>→</span></button><button id="retry-button" class="secondary-button" type="button">Retry this set</button><button id="reset-button" class="text-button" type="button">Reset question cycle</button></div></div></div>
+        <div class="results-grid"><div class="result-panel"><p class="eyebrow">By focus area</p><div id="category-results"></div></div><div class="result-panel"><p class="eyebrow">What next?</p><div class="next-actions"><button id="new-set-button" class="primary-button" type="button">New question set <span>→</span></button><button id="retry-button" class="secondary-button" type="button">Retry this set</button><button id="reset-button" class="text-button" type="button">Reset question cycle</button><button id="change-session-button" class="text-button" type="button">Choose another session</button></div></div></div>
         <div id="review-list" class="review-list"></div>
       </section>
     </main>
