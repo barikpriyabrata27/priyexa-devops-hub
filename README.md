@@ -66,11 +66,10 @@ shared across all the linked example repos.
 The quiz loads its question bank from JSON at runtime, so it must be served
 over HTTP rather than opened directly as a file.
 
-- **GitHub Pages**: GitHub Pages only serves from the repository root or a
-  `/docs` folder, not arbitrary folders like `/quiz`. Enable Pages in
-  **Settings → Pages** with **Source: Deploy from a branch**, **Branch:
-  `main`**, **Folder: `/ (root)`**, then open
-  `https://barikpriyabrata27.github.io/bitwise-devops-hub/quiz/interview.html`.
+- **GitHub Pages**: The Actions workflow publishes the repository root,
+  including the quiz under `/quiz`. The root `index.html` redirects to the
+  quiz, and it can also be opened directly at
+  `https://barikpriyabrata27.github.io/priyexa-devops-hub/quiz/interview.html`.
   A `.nojekyll` file at the repo root skips Jekyll processing so the static
   HTML/CSS/JS/JSON files are served as-is.
 - **Local testing**:
