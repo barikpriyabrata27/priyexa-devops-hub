@@ -44,18 +44,27 @@ Small repos that each illustrate deploying an app to a different target.
 
 [`knowledge/`](knowledge/README.md) breaks the pipeline into topic docs that
 link back to the repos above: [CI/CD](knowledge/ci-cd/README.md),
+[Jenkins](knowledge/jenkins/README.md),
 [Terraform](knowledge/terraform/README.md), [AWS](knowledge/aws/README.md),
 [GCP](knowledge/gcp/README.md), [Ansible](knowledge/ansible/README.md),
 [Docker](knowledge/docker/README.md), [Kubernetes](knowledge/kubernetes/README.md),
-[DevSecOps](knowledge/devsecops/README.md), and
-[Authentication & Authorization](knowledge/auth/README.md).
+[DevSecOps](knowledge/devsecops/README.md),
+[Authentication & Authorization](knowledge/auth/README.md),
+[Observability](knowledge/observability/README.md),
+[Linux](knowledge/linux/README.md), and
+[Python](knowledge/python/README.md).
+
+A small Python tool in this repo, [release-preflight](projects/release-preflight/README.md),
+checks a directory for secrets, floating image tags, and risky Kubernetes
+settings before a deploy.
 
 ## Interview quiz
 
-[`quiz/`](quiz/) contains a standalone, interactive Kubernetes and CI/CD
-interview practice quiz (1,060-question bank, practice and timed modes,
-rotating attempts), moved here from `bitwise-devops-kubernates` so it can be
-shared across all the linked example repos.
+[`quiz/`](quiz/) contains a standalone, interactive interview practice quiz
+(practice and timed modes, rotating attempts), moved here from
+`bitwise-devops-kubernates` so it can be shared across all the linked
+example repos. Categories include Kubernetes, CI/CD, Docker, Terraform,
+AWS, GCP, Ansible, Jenkins, observability, Linux, Python, DevSecOps, and authentication.
 
 - `quiz/interview.html`, `interview.css`, `interview.js` – the quiz app.
 - `quiz/interview-questions.json` – the question bank.

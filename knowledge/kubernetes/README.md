@@ -77,6 +77,8 @@ A structured, practical Kubernetes knowledge base covering Kubernetes fundamenta
 |---|---|---|
 | Kubernetes Operations | [`kubernetes-operations.md`](./kubernetes-operations.md) | Day-to-day cluster administration, deployments, scaling, upgrades, maintenance, and operational practices |
 | Kubernetes Troubleshooting | [`kubernetes-troubleshooting.md`](./kubernetes-troubleshooting.md) | Systematic troubleshooting of pods, nodes, deployments, networking, storage, and cluster issues |
+| Helm | [`HemlChart.md`](./HemlChart.md) | Charts, values, releases, and packaging Kubernetes applications |
+| Command reference | [`Kubernates Docker Commands.md`](./Kubernates%20Docker%20Commands.md) | Everyday kubectl and Docker commands used with the cluster |
 
 ---
 

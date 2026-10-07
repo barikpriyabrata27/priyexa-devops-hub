@@ -1,0 +1,16 @@
+[project]
+name = "release-preflight"
+version = "0.1.0"
+description = "Fail a release directory that contains secrets, floating image tags, root containers, or Kubernetes workloads without resource requests."
+requires-python = ">=3.10"
+readme = "README.md"
+
+[project.scripts]
+preflight = "preflight.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

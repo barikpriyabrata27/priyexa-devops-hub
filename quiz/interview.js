@@ -50,6 +50,10 @@ const CATEGORY_KNOWLEDGE = {
   "AWS": `${KNOWLEDGE_BASE_URL}/aws/README.md`,
   "Terraform": `${KNOWLEDGE_BASE_URL}/terraform/README.md`,
   "GCP": `${KNOWLEDGE_BASE_URL}/gcp/README.md`,
+  "Jenkins": `${KNOWLEDGE_BASE_URL}/jenkins/README.md`,
+  "Observability": `${KNOWLEDGE_BASE_URL}/observability/README.md`,
+  "Linux": `${KNOWLEDGE_BASE_URL}/linux/README.md`,
+  "Python": `${KNOWLEDGE_BASE_URL}/python/README.md`,
   "Ansible": `${KNOWLEDGE_BASE_URL}/ansible/README.md`,
   "Authentication & Authorization": `${KNOWLEDGE_BASE_URL}/auth/authentication-and-authorization.md`
 };

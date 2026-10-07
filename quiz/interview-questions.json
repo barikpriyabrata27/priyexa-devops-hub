@@ -15497,7 +15497,7 @@
       "Ignore it since bucket policies rarely matter for security"
     ],
     "answer": 0,
-    "explanation": "A public bucket must be closed immediately, but closing it isn't enough on its own \u2014 CloudTrail data events show what was actually read, which drives whether disclosure or further response is required."
+    "explanation": "A public bucket must be closed immediately, but closing it isn't enough on its own — CloudTrail data events show what was actually read, which drives whether disclosure or further response is required."
   },
   {
     "id": 1105,
@@ -16001,7 +16001,7 @@
     "type": "scenario",
     "question": "A resource's `count` depends on a value only known after apply (like a data source result), and Terraform fails with an error about the count value being unknown until apply. What is the fix?",
     "options": [
-      "Refactor to avoid apply-time-unknown values driving `count` \u2014 for example, use `for_each` over a statically known set, or split the change into two applies",
+      "Refactor to avoid apply-time-unknown values driving `count` — for example, use `for_each` over a statically known set, or split the change into two applies",
       "Always use `count = 1` to avoid the error",
       "Disable Terraform's plan-time validation",
       "Switch the entire configuration to a different tool"
@@ -16031,7 +16031,7 @@
     "type": "scenario",
     "question": "A generated administrator password is stored as a Terraform output and ends up in plaintext in the remote state file, which several engineers can read via S3 access. What should change?",
     "options": [
-      "Restrict and encrypt access to the state backend tightly, and avoid storing long-lived secrets as plain Terraform outputs \u2014 generate and store them in a secrets manager instead",
+      "Restrict and encrypt access to the state backend tightly, and avoid storing long-lived secrets as plain Terraform outputs — generate and store them in a secrets manager instead",
       "Stop using outputs entirely for any value",
       "Store the state file locally on each engineer's laptop instead",
       "Rotate the password every time someone views the state file"
@@ -16352,7 +16352,7 @@
       "Nothing needs to change since Secrets are always fully protected"
     ],
     "answer": 0,
-    "explanation": "Base64 is a reversible encoding scheme, not encryption \u2014 anyone with read access to the Secret object can trivially decode it. Encryption at rest and/or an external secrets manager provide real protection."
+    "explanation": "Base64 is a reversible encoding scheme, not encryption — anyone with read access to the Secret object can trivially decode it. Encryption at rest and/or an external secrets manager provide real protection."
   },
   {
     "id": 1162,
@@ -17516,7 +17516,7 @@
     "type": "scenario",
     "question": "A team assumes their StatefulSet's data is fully backed up because volume snapshots exist for each replica, but a restore attempt reveals the snapshots were taken at different times with no coordination, leaving the data inconsistent. What should backup procedures account for?",
     "options": [
-      "The application's real consistency model \u2014 for example, quiescing writes or using application-aware backup tooling \u2014 rather than relying on independently timed raw volume snapshots",
+      "The application's real consistency model — for example, quiescing writes or using application-aware backup tooling — rather than relying on independently timed raw volume snapshots",
       "Simply taking snapshots more frequently to reduce the time gap",
       "Assuming any snapshot is equally valid regardless of application state",
       "Backing up only one replica since the others should be identical"
@@ -17838,5 +17838,1713 @@
     ],
     "answer": 0,
     "explanation": "Manually pairing a workspace with the correct variable file is error-prone. Automating and verifying that pairing in the pipeline removes the chance of applying the wrong environment's values."
+  },
+  {
+    "id": 1261,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "In Google Cloud, what is the usual boundary for billing, enabled APIs, and IAM?",
+    "options": [
+      "A zone",
+      "A project",
+      "A single VM",
+      "A firewall rule"
+    ],
+    "answer": 1,
+    "explanation": "A project is the normal place you attach billing, enable APIs, and grant IAM. Production should be its own project so a dev mistake cannot delete it."
+  },
+  {
+    "id": 1262,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "How is a VPC different from a typical AWS VPC?",
+    "options": [
+      "A GCP VPC is global and its subnets are regional",
+      "A GCP VPC exists in only one zone",
+      "A GCP VPC cannot have firewall rules",
+      "Subnets in GCP cannot be expanded"
+    ],
+    "answer": 0,
+    "explanation": "A Google Cloud VPC network is global. Subnets are regional. You add a subnet in each region instead of creating a new VPC per region."
+  },
+  {
+    "id": 1263,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "What does gcloud auth application-default login set up?",
+    "options": [
+      "The SSH key for every VM",
+      "Credentials that client libraries and Terraform use",
+      "The organization policy",
+      "A public IP on the default network"
+    ],
+    "answer": 1,
+    "explanation": "Application Default Credentials are what Terraform and Google client libraries pick up. They can point at a different identity than the active gcloud configuration, so check both when a resource seems to vanish."
+  },
+  {
+    "id": 1264,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Why should production workloads avoid the default Compute Engine service account?",
+    "options": [
+      "It cannot start VMs",
+      "It is often granted the broad Editor role",
+      "It expires every hour and breaks autoscaling",
+      "It cannot be attached to a VM"
+    ],
+    "answer": 1,
+    "explanation": "The default Compute Engine service account has historically been convenient and powerful. Give each workload its own service account and a predefined role that matches the job."
+  },
+  {
+    "id": 1265,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A VM should call Cloud Storage without a downloaded JSON key. What do you attach?",
+    "options": [
+      "An API key in the startup script",
+      "A user password",
+      "A service account on the VM",
+      "A public bucket ACL"
+    ],
+    "answer": 2,
+    "explanation": "An attached service account gives the VM short-lived credentials through the metadata server. A JSON key on disk is the credential that leaks into images and tickets."
+  },
+  {
+    "id": 1266,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "What does Private Google Access allow?",
+    "options": [
+      "Any VM to accept inbound internet traffic",
+      "VMs with only internal IPs to reach Google APIs such as Cloud Storage",
+      "A VM to become a domain controller",
+      "Public users to read a private bucket"
+    ],
+    "answer": 1,
+    "explanation": "Private Google Access is the path from an internal-only VM to Google APIs. It is not a public IP and it is not general internet egress. General egress still needs Cloud NAT."
+  },
+  {
+    "id": 1267,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Cloud NAT is for which traffic?",
+    "options": [
+      "Inbound connections from the internet to a private VM",
+      "Outbound connections from private VMs that have no public IP",
+      "Replacing a load balancer",
+      "Encrypting disks"
+    ],
+    "answer": 1,
+    "explanation": "Cloud NAT lets private VMs open outbound connections without accepting inbound ones. It does not publish the VM. Databases often should have no NAT at all."
+  },
+  {
+    "id": 1268,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "Which IAM role is a poor fit for production because it can change almost every resource?",
+    "options": [
+      "roles/cloudsql.client",
+      "roles/storage.objectViewer",
+      "roles/editor",
+      "roles/logging.viewer"
+    ],
+    "answer": 2,
+    "explanation": "roles/editor and roles/owner are the broad primitive roles. Prefer a predefined role that names the job, granted on the smallest resource that works."
+  },
+  {
+    "id": 1269,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "You grant roles/storage.objectAdmin on one bucket instead of on the project. Why?",
+    "options": [
+      "Bucket IAM is ignored",
+      "The blast radius stays on that bucket",
+      "It makes the bucket multi-regional automatically",
+      "It disables versioning"
+    ],
+    "answer": 1,
+    "explanation": "IAM bindings are inherited down the tree. A role on the project applies to every bucket. Binding the role on one bucket is the smaller grant."
+  },
+  {
+    "id": 1270,
+    "category": "GCP",
+    "difficulty": "Advanced",
+    "question": "A developer can create a VM but should not run it as the production service account. Which extra permission is the dangerous one?",
+    "options": [
+      "roles/compute.osLogin on the project",
+      "Permission to attach or impersonate that service account",
+      "roles/logging.viewer",
+      "Access to Cloud DNS"
+    ],
+    "answer": 1,
+    "explanation": "Whoever can attach a powerful service account to a VM they control can act as that account. Impersonation and serviceAccountUser are the quiet path to the service account's roles."
+  },
+  {
+    "id": 1271,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "What is a managed instance group for?",
+    "options": [
+      "Storing objects",
+      "Keeping a template's VMs healthy, scaled, and rolling onto new images",
+      "Authoritative DNS",
+      "Running a single pet database"
+    ],
+    "answer": 1,
+    "explanation": "A managed instance group uses an instance template, replaces unhealthy VMs, and can roll a new template. A single database VM is a poor candidate."
+  },
+  {
+    "id": 1272,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A regional managed instance group is preferred over a zonal one for a web tier because:",
+    "options": [
+      "It is required for Cloud DNS",
+      "It spreads VMs across zones",
+      "It removes the need for a health check",
+      "It makes disks global"
+    ],
+    "answer": 1,
+    "explanation": "A zonal group lives in one zone. A regional group places VMs in more than one zone, so one zone failure does not remove the tier. The health check still has to hit the real application port."
+  },
+  {
+    "id": 1273,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "You replace an instance template and start a rolling update. New VMs never become healthy. What should happen?",
+    "options": [
+      "The update should stop instead of replacing the whole fleet",
+      "The group should ignore the health check and finish",
+      "DNS should be deleted",
+      "The old template should be edited in place"
+    ],
+    "answer": 0,
+    "explanation": "A rolling update waits for new VMs to pass the health check. If the check is real, a bad image stops the rollout. A check that always passes will happily replace the fleet."
+  },
+  {
+    "id": 1274,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "GKE Standard differs from Autopilot mainly in that:",
+    "options": [
+      "Standard hides the nodes and bills only per pod request",
+      "Standard lets you choose and operate node pools",
+      "Autopilot cannot run containers",
+      "Standard does not use Kubernetes"
+    ],
+    "answer": 1,
+    "explanation": "Standard shows you the node pools, machine types, and upgrades. Autopilot picks the nodes and bills from pod requests. Choose Standard when you need the control Autopilot restricts."
+  },
+  {
+    "id": 1275,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "How should a GKE pod call a Google API without a JSON key in the image?",
+    "options": [
+      "Put the key in a ConfigMap",
+      "Use Workload Identity to map a Kubernetes service account to a Google service account",
+      "Make the node service account Owner",
+      "Commit the key and rotate it yearly"
+    ],
+    "answer": 1,
+    "explanation": "Workload Identity lets the pod act as a Google service account. The node pool's own service account should still be narrow, not Editor."
+  },
+  {
+    "id": 1276,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A new GKE cluster runs out of pod IPs and new pods stay unschedulable. What was undersized?",
+    "options": [
+      "The Cloud DNS zone",
+      "The alias IP range used for pods",
+      "The container registry",
+      "The number of Cloud SQL users"
+    ],
+    "answer": 1,
+    "explanation": "VPC-native clusters take pod IPs from a planned secondary range. Exhausting it looks like a scheduling failure. A bigger node does not create addresses."
+  },
+  {
+    "id": 1277,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "Cloud Run requires the container to listen on which port?",
+    "options": [
+      "Always port 22",
+      "The port in the PORT environment variable, default 8080",
+      "Port 3306",
+      "Whatever EXPOSE says, ignoring PORT"
+    ],
+    "answer": 1,
+    "explanation": "Cloud Run sends traffic to PORT. A container that listens on 80 because the Dockerfile says so never becomes healthy, and the error looks like a timeout."
+  },
+  {
+    "id": 1278,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "What is a Cloud Run revision used for during a release?",
+    "options": [
+      "Replacing IAM for the project",
+      "Sending a fraction of traffic to the new container while the previous revision remains",
+      "Storing objects",
+      "Extending a VM's disk"
+    ],
+    "answer": 1,
+    "explanation": "Each deploy creates a revision. You can shift a small percentage of traffic to it and point traffic back at the previous revision to roll back."
+  },
+  {
+    "id": 1279,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A Cloud Run service was marked to allow unauthenticated invocations. What did that do?",
+    "options": [
+      "It restricted the service to the VPC",
+      "It made the HTTP endpoint public",
+      "It encrypted the image",
+      "It disabled scaling"
+    ],
+    "answer": 1,
+    "explanation": "Allowing unauthenticated invocations grants allUsers the invoker role. The service is then a public API. Require authentication unless that is the intent, and restrict ingress if a load balancer should be the only door."
+  },
+  {
+    "id": 1280,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "Cloud Functions are a better fit than Cloud Run when:",
+    "options": [
+      "The job runs for many hours and needs a sidecar",
+      "You want a small function tied to one event, such as a finalized object",
+      "You need a DaemonSet",
+      "You need a service mesh"
+    ],
+    "answer": 1,
+    "explanation": "A function is the unit for a small reaction to an event. Long jobs, sidecars, and always-on processes belong on Cloud Run or GKE. Events can be delivered more than once, so the function should be idempotent."
+  },
+  {
+    "id": 1281,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Why cap the instance count on a function or Cloud Run service?",
+    "options": [
+      "To make cold starts slower",
+      "So a bug that retriggers itself cannot scale the bill without a ceiling",
+      "Because GCP forbids more than one instance",
+      "To disable logging"
+    ],
+    "answer": 1,
+    "explanation": "An event that re-emits itself will scale until a quota or the invoice stops it. A maximum instance count is the brake. Failures should also go to a dead-letter topic after a bounded number of retries."
+  },
+  {
+    "id": 1282,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "What does Cloud Storage store?",
+    "options": [
+      "POSIX disks mounted as block devices",
+      "Objects, which are bytes plus a name, in a bucket",
+      "Only SQL tables",
+      "Kubernetes Secrets"
+    ],
+    "answer": 1,
+    "explanation": "A bucket holds objects. The slash in the name is not a real directory. Bucket names are global, and the data lives in the location you chose."
+  },
+  {
+    "id": 1283,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Uniform bucket-level access is turned on so that:",
+    "options": [
+      "Every object is public",
+      "Access is controlled with IAM instead of per-object ACLs",
+      "Versioning is disabled",
+      "The bucket becomes multi-regional"
+    ],
+    "answer": 1,
+    "explanation": "Uniform bucket-level access turns off the older per-object ACL maze. Public access is then an explicit IAM grant such as allUsers as objectViewer, which you should not add by accident."
+  },
+  {
+    "id": 1284,
+    "category": "GCP",
+    "difficulty": "Advanced",
+    "question": "A static site should be served from Cloud Storage without making the bucket world-readable. How?",
+    "options": [
+      "Grant allUsers objectViewer",
+      "Put Cloud CDN or a load balancer in front and allow only that origin to read",
+      "Email the objects",
+      "Disable Block Public Access and hope"
+    ],
+    "answer": 1,
+    "explanation": "The bucket stays private. The load balancer or CDN identity is the only reader. Requesting the bucket URL directly should fail. Public access prevention at the organization can make the public grant impossible."
+  },
+  {
+    "id": 1285,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Multi-AZ style protection and backups on Cloud SQL are different because:",
+    "options": [
+      "High availability copies a bad DELETE to the standby immediately",
+      "Backups are only taken when HA is off",
+      "HA stores point-in-time history for a month by itself",
+      "A standby is a public IP"
+    ],
+    "answer": 0,
+    "explanation": "High availability fails over when a node or zone dies. A mistaken DELETE is replicated. Point-in-time recovery from backups is how you return to a moment before that statement. Test a restore onto another instance."
+  },
+  {
+    "id": 1286,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "From Cloud Run or GKE, the preferred database path is:",
+    "options": [
+      "A public IP and 0.0.0.0/0 authorized networks",
+      "A private IP, with the runtime service account allowed to connect",
+      "The database password baked into the image",
+      "SSH to the instance"
+    ],
+    "answer": 1,
+    "explanation": "Private IP keeps the database off the internet. The runtime identity gets roles/cloudsql.client where the connector is used. The password lives in Secret Manager, not in the image."
+  },
+  {
+    "id": 1287,
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "At a DNS zone apex you generally cannot publish:",
+    "options": [
+      "An A record",
+      "A CNAME",
+      "An NS record at delegation",
+      "A TXT record"
+    ],
+    "answer": 1,
+    "explanation": "A CNAME is not allowed at the apex. Publish an A or AAAA record, or the load balancer's address. Lower the TTL before a migration or caches will keep the old answer."
+  },
+  {
+    "id": 1288,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A Cloud DNS change does not seem to apply. dig against the zone's name server shows the new value, and dig from a laptop shows the old one. Why?",
+    "options": [
+      "The record was never saved",
+      "A resolver cache is still inside the previous TTL",
+      "GCP deleted the project",
+      "Firewall rules block DNS"
+    ],
+    "answer": 1,
+    "explanation": "The authoritative server and a recursive resolver are different. The laptop is allowed to keep the previous answer until the TTL expires. Query the name server directly when you need to know what you published."
+  },
+  {
+    "id": 1289,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Google health checks mark every backend unhealthy, but SSH to the VM works. What is a common miss?",
+    "options": [
+      "The firewall does not allow the health-check ranges to the probe port",
+      "The VM has no SSH key",
+      "Cloud DNS is case sensitive",
+      "The bucket is versioned"
+    ],
+    "answer": 0,
+    "explanation": "Health checkers come from published ranges. If the VPC firewall does not allow them, every backend looks dead while an SSH session still succeeds. The check should hit a path that means the app can serve."
+  },
+  {
+    "id": 1290,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "An external Application Load Balancer is the right choice when:",
+    "options": [
+      "You need host and path routing for HTTPS",
+      "You only need raw UDP inside the VPC",
+      "You are storing objects",
+      "You are backing up etcd"
+    ],
+    "answer": 0,
+    "explanation": "The application load balancer understands HTTP: hosts, paths, and TLS. A passthrough network load balancer does not look inside the bytes. Internal load balancers stay on the VPC."
+  },
+  {
+    "id": 1291,
+    "category": "GCP",
+    "difficulty": "Advanced",
+    "question": "One zone's instance group fails its health check. Users still get the site, slower. What is working?",
+    "options": [
+      "The database failover",
+      "The load balancer shifted traffic to healthy backends in another zone",
+      "Cloud NAT",
+      "A public bucket ACL"
+    ],
+    "answer": 1,
+    "explanation": "That is the point of backends in more than one zone and a health check that can fail one of them. If both zones share one database and the database is what failed, the load balancer cannot hide it."
+  },
+  {
+    "id": 1292,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "Artifact Registry, rather than a laptop tag, should be the source of production images because:",
+    "options": [
+      "Images in the registry are unscanned by design",
+      "Production should pull a digest the pipeline pushed, using a reader role on that repository",
+      "Registry IAM is impossible",
+      "GKE cannot pull from Artifact Registry"
+    ],
+    "answer": 1,
+    "explanation": "The pipeline builds, scans, and pushes. The runtime service account gets roles/artifactregistry.reader on that repository. :latest is a moving pointer. Deploy a digest or an immutable tag."
+  },
+  {
+    "id": 1293,
+    "category": "GCP",
+    "difficulty": "Advanced",
+    "question": "Terraform and gcloud both succeed and seem to fight. What do you check first?",
+    "options": [
+      "The VM kernel version",
+      "Which project and which identity each tool is using",
+      "The Docker layer cache",
+      "The Jenkins home path"
+    ],
+    "answer": 1,
+    "explanation": "gcloud config get-value project and application-default credentials can point at different projects. A click in the console also creates drift the next Terraform plan will try to undo. Sandbox projects can be click-allowed. Production should be code."
+  },
+  {
+    "id": 1294,
+    "category": "GCP",
+    "difficulty": "Advanced",
+    "question": "A private GKE cluster's API is exposed with authorized networks set to 0.0.0.0/0. What is wrong?",
+    "options": [
+      "Private nodes are impossible",
+      "The control plane is effectively reachable from the internet",
+      "Workload Identity requires a public API",
+      "Pod ranges must be public"
+    ],
+    "answer": 1,
+    "explanation": "Private nodes are not a private API. Authorized networks of the whole internet remove the restriction. Narrow the source, or use a private endpoint, and do not treat a public API as an internal detail."
+  },
+  {
+    "id": 1295,
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "OS Login is used instead of managed authorized_keys files because:",
+    "options": [
+      "SSH then bypasses IAM",
+      "SSH access follows IAM, so removing a user removes their login",
+      "It opens port 22 to the world",
+      "It stores the private key in git"
+    ],
+    "answer": 1,
+    "explanation": "OS Login ties Linux login to IAM. You stop accumulating keys of people who left. Grant the role to a group, and grant the admin variant only when root is intentional."
+  },
+  {
+    "id": 1296,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "What is Jenkins home?",
+    "options": [
+      "The GitHub repository",
+      "The directory where the controller keeps jobs, plugins, build history, and credentials",
+      "The agent's Docker socket only",
+      "A Kubernetes Namespace"
+    ],
+    "answer": 1,
+    "explanation": "JENKINS_HOME, often /var/lib/jenkins, is the controller's state. A new install with an empty home is a new Jenkins. Back it up, and treat the backup as secret because the credential store is inside it."
+  },
+  {
+    "id": 1297,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "Why should builds run on an agent rather than on the controller?",
+    "options": [
+      "Agents cannot use credentials",
+      "Untrusted build code should not run next to the credential store",
+      "The controller cannot queue jobs",
+      "Agents do not produce logs"
+    ],
+    "answer": 1,
+    "explanation": "The controller schedules and holds secrets. Compilation, Docker, and disk use belong on an agent. A compromise of a build then does not start from the credential files."
+  },
+  {
+    "id": 1298,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "A job stays in the queue and never starts. What is a likely cause?",
+    "options": [
+      "The Jenkinsfile has a syntax error, which fails immediately",
+      "No online agent matches the label the Jenkinsfile requests",
+      "GitHub is public",
+      "The Dockerfile uses multi-stage builds"
+    ],
+    "answer": 1,
+    "explanation": "A missing label looks like a hang, not a failed stage. The job is waiting for an executor that will never appear. A syntax error in the Jenkinsfile fails before stages, which is a different symptom."
+  },
+  {
+    "id": 1299,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Declarative pipelines are preferred over a long scripted pipeline because:",
+    "options": [
+      "Scripted pipelines cannot call sh",
+      "The structure is checked and is easier for the next person to read",
+      "Declarative pipelines cannot use credentials",
+      "Scripted pipelines do not run on agents"
+    ],
+    "answer": 1,
+    "explanation": "Declarative pipelines have pipeline, agent, stages, and post. Use a script block for the one step that does not fit. A full Groovy script can do anything the controller can, which makes mistakes larger."
+  },
+  {
+    "id": 1300,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Where should a registry password live?",
+    "options": [
+      "In the Jenkinsfile as a default parameter",
+      "In the Jenkins credential store, bound into the push stage",
+      "In the Dockerfile ENV",
+      "In a Git commit on main"
+    ],
+    "answer": 1,
+    "explanation": "withCredentials injects the secret for one step and can mask it in the log. Echoing the variable defeats the mask. Folder scope stops the dev folder from reading the production credential."
+  },
+  {
+    "id": 1301,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "A pull request from a fork should not receive Jenkins credentials because:",
+    "options": [
+      "Forks cannot contain a Jenkinsfile",
+      "The Jenkinsfile in the fork is code an attacker controls, and it can print any secret you inject",
+      "Agents refuse fork builds",
+      "GitHub blocks webhooks from forks"
+    ],
+    "answer": 1,
+    "explanation": "Whoever can change the Jenkinsfile can change the steps. Injecting production secrets into that build hands the secrets to the pull request. Build forks without secrets."
+  },
+  {
+    "id": 1302,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "What is a better GitHub credential for Jenkins than a person's access token?",
+    "options": [
+      "The engineer's SSH key copied onto the controller",
+      "A GitHub App private key, or a read-only deploy key, stored in Jenkins",
+      "A password in the webhook URL",
+      "Anonymous clone of a private repository"
+    ],
+    "answer": 1,
+    "explanation": "A personal token acts as that person and breaks when they leave. A GitHub App or a deploy key is owned by the team. The webhook should have its own secret so strangers cannot trigger builds."
+  },
+  {
+    "id": 1303,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "An ephemeral agent is useful because:",
+    "options": [
+      "It shares a dirty workspace with the next job on purpose",
+      "The machine exists for one build and does not keep leftover tools or files",
+      "It stores the credential database",
+      "It replaces the need for a Jenkinsfile"
+    ],
+    "answer": 1,
+    "explanation": "A VM or pod per build is deleted afterward. The agent image is the definition of the toolchain. Tools someone installed by hand last month disappear, which is the point."
+  },
+  {
+    "id": 1304,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "The image build succeeds and the Jenkins deploy stage is green, but production still runs the old digest. What is missing?",
+    "options": [
+      "A second copy of the Jenkinsfile",
+      "A wait on rollout status, and a check that the Deployment actually changed",
+      "More plugins",
+      "A freestyle job"
+    ],
+    "answer": 1,
+    "explanation": "kubectl apply exiting 0 does not mean new pods are Ready, and a swallowed permission error can leave the old digest in place. Fail the build if rollout status times out, and confirm the digest on the cluster."
+  },
+  {
+    "id": 1305,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Several unrelated jobs fail at once after a shared-library change. Where do you look first?",
+    "options": [
+      "Each application's unit tests",
+      "The shared library revision those Jenkinsfiles load",
+      "The Cloud SQL backup window",
+      "The Grafana password"
+    ],
+    "answer": 1,
+    "explanation": "A library loaded by many Jenkinsfiles is one dependency for many jobs. Compare the library commit with the last green builds before you treat every service as independently broken."
+  },
+  {
+    "id": 1306,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "What does cleanWs() in post help prevent?",
+    "options": [
+      "GitHub branch protection",
+      "The next build on that agent reusing files from a dirty workspace",
+      "IAM inheritance",
+      "DNS TTL"
+    ],
+    "answer": 1,
+    "explanation": "A leftover target directory or a half-written Docker context makes the next run unreproducible. Cleaning the workspace in post, including after failure, keeps the agent boring."
+  },
+  {
+    "id": 1307,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "when { branch 'main' } on the deploy stage is there so that:",
+    "options": [
+      "Pull requests deploy to production",
+      "Only the main branch runs the deploy stage",
+      "Agents are deleted",
+      "Credentials are printed"
+    ],
+    "answer": 1,
+    "explanation": "A multibranch job builds every branch. The deploy stage has to be conditional. Pair it with a credential the pull-request build is not allowed to use, or the when block is only half of the control."
+  },
+  {
+    "id": 1308,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "You need to roll a production deploy back from Jenkins. What should the job use?",
+    "options": [
+      "Whatever image tag latest points at now",
+      "The digest recorded from the last successful production build",
+      "A rebuild of an older branch with floating dependencies",
+      "An SSH session that edits the server"
+    ],
+    "answer": 1,
+    "explanation": "The previous good artifact is an output of the last green deploy. Rebuilding an old commit can resolve different dependencies. Point the Deployment back at the recorded digest and wait until it is Ready."
+  },
+  {
+    "id": 1309,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "A webhook delivers events but Jenkins never reports a check on the commit. What is incomplete?",
+    "options": [
+      "The agent label",
+      "The return path: Jenkins can clone, but it is not authenticated to write commit status",
+      "The Dockerfile EXPOSE",
+      "The disk snapshot schedule"
+    ],
+    "answer": 1,
+    "explanation": "Clone credentials and status credentials are different uses. The GitHub App needs permission to post the check, and the job has to publish it. Branch protection will then wait on a check that never appears if that half is missing."
+  },
+  {
+    "id": 1310,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "Freestyle jobs are a weaker default than a Jenkinsfile because:",
+    "options": [
+      "They cannot run a shell step",
+      "The steps live in the UI and are not reviewed with the code",
+      "They cannot use Git",
+      "They always run as root on the controller"
+    ],
+    "answer": 1,
+    "explanation": "Clicking together SCM and shell steps works until nobody can see the diff. A Jenkinsfile in the repository is reviewed like the rest of the change. Keep freestyle for a one-off you mean to delete."
+  },
+  {
+    "id": 1311,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "Prometheus normally collects metrics by:",
+    "options": [
+      "SSH into each server and running top",
+      "Scraping HTTP endpoints such as /metrics",
+      "Tailing log files",
+      "Receiving every span from the application"
+    ],
+    "answer": 1,
+    "explanation": "Prometheus pulls metrics from scrape targets. Logs and traces are different signals and are not how Prometheus collects time series."
+  },
+  {
+    "id": 1312,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "A counter metric is the right type for:",
+    "options": [
+      "Current memory in use",
+      "A total that only increases, such as requests served",
+      "CPU temperature that rises and falls",
+      "The number of pods desired right now"
+    ],
+    "answer": 1,
+    "explanation": "Counters only go up, except on restart. Gauges move up and down. You graph the rate of a counter, not the raw total."
+  },
+  {
+    "id": 1313,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Why graph rate() of an HTTP error counter instead of the raw counter?",
+    "options": [
+      "The raw counter resets every scrape",
+      "A climbing total hides whether errors just doubled",
+      "rate() stores logs",
+      "Counters cannot be labeled"
+    ],
+    "answer": 1,
+    "explanation": "A counter always climbs, so the chart looks calm during an incident. The per-second rate shows that failures increased."
+  },
+  {
+    "id": 1314,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Which label is dangerous to put on a Prometheus metric?",
+    "options": [
+      "service",
+      "status code",
+      "user id",
+      "namespace"
+    ],
+    "answer": 2,
+    "explanation": "Each unique label set is a time series kept in memory. A user id or raw URL explodes cardinality. Per-user detail belongs in a log or a trace."
+  },
+  {
+    "id": 1315,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "A sensible default Prometheus scrape interval for most services is:",
+    "options": [
+      "Every second for the whole cluster",
+      "About 30 seconds",
+      "Once a day",
+      "Only when an alert fires"
+    ],
+    "answer": 1,
+    "explanation": "Thirty seconds is enough for most incidents. One minute hides a short outage. Scraping everything every second makes Prometheus the load."
+  },
+  {
+    "id": 1316,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "RED metrics for a service are:",
+    "options": [
+      "Replicas, endpoints, and disks",
+      "Rate, errors, and duration",
+      "RAM, electricity, and datacenter",
+      "Retries, encryption, and DNS"
+    ],
+    "answer": 1,
+    "explanation": "Rate, errors, and duration describe what users experience. CPU is a resource metric, not a substitute for those three."
+  },
+  {
+    "id": 1317,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "kube-state-metrics is for:",
+    "options": [
+      "Application business counters",
+      "Kubernetes object state, such as desired versus ready replicas",
+      "Tracing spans",
+      "Disk snapshots of etcd"
+    ],
+    "answer": 1,
+    "explanation": "kube-state-metrics exposes the API objects. node-exporter exposes the machine. The application exposes its own /metrics."
+  },
+  {
+    "id": 1318,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "node-exporter is installed so you can see:",
+    "options": [
+      "Git commit history",
+      "Host CPU, memory, disk, and network",
+      "Jenkins credentials",
+      "Only HTTP status codes from the app"
+    ],
+    "answer": 1,
+    "explanation": "node-exporter is the host agent. It does not know your request latency. That still comes from the application."
+  },
+  {
+    "id": 1319,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "CPU is idle and p95 latency is high. What should you look at next?",
+    "options": [
+      "Add more application replicas immediately",
+      "Where requests are waiting: database, lock, or a downstream call",
+      "The image build cache",
+      "The Jenkins agent label"
+    ],
+    "answer": 1,
+    "explanation": "Idle CPU with slow requests means time is spent waiting. A trace or a database chart will show the wait. Scaling the app adds more waiters."
+  },
+  {
+    "id": 1320,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "In EFK, what does F stand for?",
+    "options": [
+      "Fluent Bit",
+      "Filebeat only",
+      "Firewall",
+      "Failover"
+    ],
+    "answer": 0,
+    "explanation": "EFK is Elasticsearch, Fluent Bit, and Kibana. ELK uses Logstash in the middle instead of Fluent Bit."
+  },
+  {
+    "id": 1321,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Why is Fluent Bit usually a DaemonSet?",
+    "options": [
+      "So one collector pod reads logs on every node",
+      "Because Deployments cannot mount disks",
+      "To replace CoreDNS",
+      "To run the application container"
+    ],
+    "answer": 0,
+    "explanation": "Container logs land on the node. One collector per node reads them locally. A sidecar is only needed when the app cannot write to stdout."
+  },
+  {
+    "id": 1322,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Applications in Kubernetes should log to:",
+    "options": [
+      "A file on the container filesystem only",
+      "stdout and stderr, preferably as JSON",
+      "The node SSH session",
+      "etcd directly"
+    ],
+    "answer": 1,
+    "explanation": "The runtime already stores stdout. A second file fills the node disk. JSON fields are what make the line searchable."
+  },
+  {
+    "id": 1323,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "Two services log the same request and you cannot tell they are the same request. What is missing?",
+    "options": [
+      "A second Prometheus server",
+      "A shared trace or correlation id on both log lines",
+      "A larger disk",
+      "Another Grafana organization"
+    ],
+    "answer": 1,
+    "explanation": "The id has to be generated once and passed on. Without it, metrics, logs, and traces are three separate tools."
+  },
+  {
+    "id": 1324,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Who chooses the Elasticsearch or OpenSearch index name?",
+    "options": [
+      "The browser",
+      "The collector or ingest pipeline, often with a date suffix",
+      "The kubelet, always",
+      "The load balancer"
+    ],
+    "answer": 1,
+    "explanation": "Fluent Bit or Logstash sets the index. A template defines mappings and retention. A Kibana pattern is only the search window over those indexes."
+  },
+  {
+    "id": 1325,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "A log field is sometimes a number and sometimes a string. What breaks?",
+    "options": [
+      "DNS",
+      "The index mapping rejects later documents",
+      "The readiness probe",
+      "IAM"
+    ],
+    "answer": 1,
+    "explanation": "OpenSearch maps a field from the first documents it sees. A later type clash is a rejected write, not a display glitch. Fix the template and the producer."
+  },
+  {
+    "id": 1326,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "A trace answers which question?",
+    "options": [
+      "Which Git commit is deployed",
+      "Where the time went inside one request",
+      "How many nodes exist",
+      "Who approved the Jenkins build"
+    ],
+    "answer": 1,
+    "explanation": "A trace is spans for one request. Metrics say latency rose. The trace says which hop consumed it."
+  },
+  {
+    "id": 1327,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "What does the traceparent header do?",
+    "options": [
+      "Authenticates the user",
+      "Carries trace context so the next service continues the same trace",
+      "Sets the scrape interval",
+      "Encrypts the log index"
+    ],
+    "answer": 1,
+    "explanation": "If a service drops the header and starts a new id, one user request becomes two unrelated traces."
+  },
+  {
+    "id": 1328,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "You sample traces in production mainly to:",
+    "options": [
+      "Hide errors",
+      "Keep the trace store affordable while still keeping errors",
+      "Stop metrics collection",
+      "Disable Grafana"
+    ],
+    "answer": 1,
+    "explanation": "Storing every span from a busy API is another production system. Keep a fraction of normal traffic and keep the failures."
+  },
+  {
+    "id": 1329,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "Ten microservices each show a trace, but no single trace contains all ten. What failed?",
+    "options": [
+      "Prometheus cardinality",
+      "Context propagation between services",
+      "The load balancer health check",
+      "Index lifecycle"
+    ],
+    "answer": 1,
+    "explanation": "One request in the front door should produce one trace with a span per hop. Separate traces mean a service is not forwarding the parent context."
+  },
+  {
+    "id": 1330,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "OpenTelemetry is:",
+    "options": [
+      "A database that stores metrics",
+      "A standard SDK and collector; you still choose the backend",
+      "A replacement for Grafana",
+      "A Jenkins plugin"
+    ],
+    "answer": 1,
+    "explanation": "The SDK instruments the app. The collector exports. Prometheus, Tempo, or Jaeger is the store. OpenTelemetry is not that store."
+  },
+  {
+    "id": 1331,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Why run the OpenTelemetry Collector as a DaemonSet?",
+    "options": [
+      "So each node receives spans locally instead of every pod calling one central collector",
+      "Because collectors cannot run anywhere else",
+      "To scrape Jenkins",
+      "To replace Fluent Bit for metrics only"
+    ],
+    "answer": 0,
+    "explanation": "A local collector batches and exports. Pointing every pod at one remote collector creates a bottleneck and a large blast radius."
+  },
+  {
+    "id": 1332,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Grafana's job is to:",
+    "options": [
+      "Scrape /metrics itself",
+      "Query metrics, logs, and traces and draw them",
+      "Store the Kubernetes API",
+      "Build container images"
+    ],
+    "answer": 1,
+    "explanation": "Grafana is the screen. Prometheus, the log store, and the trace store hold the data. Grafana does not collect it."
+  },
+  {
+    "id": 1333,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "A derived field on a log datasource is used to:",
+    "options": [
+      "Delete old indexes",
+      "Open the matching trace when a log line contains a trace id",
+      "Restart a pod",
+      "Pin a Jenkins plugin"
+    ],
+    "answer": 1,
+    "explanation": "The log prints the id. Grafana turns that field into a link to Tempo or Jaeger so you do not copy ids between tabs."
+  },
+  {
+    "id": 1334,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "Which alert should page a human?",
+    "options": [
+      "CPU above 70 percent for one minute",
+      "Error ratio or latency that users are feeling",
+      "A successful deploy",
+      "A node that is Ready"
+    ],
+    "answer": 1,
+    "explanation": "Page on symptoms. CPU is a diagnostic. An alert nobody can act on teaches people to ignore the channel."
+  },
+  {
+    "id": 1335,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Hundreds of alerts fire at once. What do you look for?",
+    "options": [
+      "The loudest duplicate",
+      "The earliest shared cause, such as the database, DNS, or a deploy",
+      "A new dashboard theme",
+      "The image size"
+    ],
+    "answer": 1,
+    "explanation": "A flood is usually one failure with many symptoms. Silence the copies after you name the upstream cause, then delete alerts that never change an action."
+  },
+  {
+    "id": 1336,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "A fast-burn SLO alert means:",
+    "options": [
+      "CPU is high on one node",
+      "The error budget would be exhausted in hours if the current rate continues",
+      "Logs are unstructured",
+      "A scrape failed once"
+    ],
+    "answer": 1,
+    "explanation": "The SLO is the promise, such as 99.9 percent. A fast burn pages because the month's budget is disappearing now. A slow burn can be a ticket."
+  },
+  {
+    "id": 1337,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "Logging a database password in a structured field is worse than a plain-text accident because:",
+    "options": [
+      "JSON cannot be indexed",
+      "The secret becomes easy to query at scale",
+      "Fluent Bit refuses JSON",
+      "Grafana cannot show strings"
+    ],
+    "answer": 1,
+    "explanation": "Structure makes search better. That includes secrets. Redact tokens and passwords before they are shipped."
+  },
+  {
+    "id": 1338,
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "Alertmanager's role next to Prometheus is to:",
+    "options": [
+      "Draw the dashboards",
+      "Route, group, and silence alerts",
+      "Store traces",
+      "Scrape node-exporter"
+    ],
+    "answer": 1,
+    "explanation": "Prometheus evaluates rules. Alertmanager decides who is paged, groups a storm into one message, and applies silences."
+  },
+  {
+    "id": 1339,
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "A latency histogram is more useful than an average because:",
+    "options": [
+      "Averages show the slow tail",
+      "Averages hide the slow tail that users actually hit",
+      "Histograms cannot be graphed",
+      "Histograms replace logs"
+    ],
+    "answer": 1,
+    "explanation": "A few slow requests disappear into the average. Histogram buckets let you compute p95 or p99."
+  },
+  {
+    "id": 1340,
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "Health-check requests are drowning the logs. Where should they be dropped?",
+    "options": [
+      "In the customer's browser",
+      "In the collector, before indexing",
+      "By turning off stdout",
+      "By deleting the Service"
+    ],
+    "answer": 1,
+    "explanation": "Drop or sample the health-check line in Fluent Bit or the ingest pipeline. Keep the application logging real requests. Do not stop logging entirely."
+  },
+  {
+    "id": 1341,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "A backup of Jenkins home must be treated as secret because:",
+    "options": [
+      "It contains only build logs",
+      "The credential store and secrets directory are inside it",
+      "It is a container image",
+      "It replaces the Git repository"
+    ],
+    "answer": 1,
+    "explanation": "credentials.xml and the secrets directory live under JENKINS_HOME. A backup of that disk is a copy of the production secrets."
+  },
+  {
+    "id": 1342,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Pinning Jenkins plugin versions matters because:",
+    "options": [
+      "Plugins cannot be upgraded",
+      "An unpinned upgrade can change pipeline behavior for every job",
+      "The agent label depends on the plugin site",
+      "GitHub requires a random plugin set"
+    ],
+    "answer": 1,
+    "explanation": "The controller's plugins are part of the build environment. Upgrade them on purpose and test a job, the same way you pin a provider or a base image."
+  },
+  {
+    "id": 1343,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "A multibranch pipeline discovers work by:",
+    "options": [
+      "Running every freestyle job on a timer",
+      "Finding branches that contain a Jenkinsfile",
+      "Reading Cloud DNS",
+      "Listing Kubernetes pods"
+    ],
+    "answer": 1,
+    "explanation": "GitHub Branch Source scans the repository and builds branches and pull requests that have a Jenkinsfile. Deploy still has to be limited to the protected branch."
+  },
+  {
+    "id": 1344,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "An input step before production is for:",
+    "options": [
+      "Printing all credentials",
+      "Pausing until a person approves the digest that is about to deploy",
+      "Skipping tests",
+      "Deleting Jenkins home"
+    ],
+    "answer": 1,
+    "explanation": "The build shows what will change and waits. Put a timeout on the input so a forgotten approval does not hold an agent all weekend."
+  },
+  {
+    "id": 1345,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "parallel in a Jenkinsfile should wrap stages that:",
+    "options": [
+      "Must not start until each other finishes",
+      "Do not need each other's output, such as unit tests and lint",
+      "All push the same image tag",
+      "Deploy to production together with no lock"
+    ],
+    "answer": 1,
+    "explanation": "Independent work runs together. The publish or deploy stage waits until the required artifacts exist. Two jobs must not push the same mutable tag."
+  },
+  {
+    "id": 1346,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "Shell steps fail with odd 'no space left' errors and the Jenkinsfile did not change. What do you check?",
+    "options": [
+      "The Grafana datasource",
+      "Disk on the agent that ran the build",
+      "The DNS TTL",
+      "The application SLO"
+    ],
+    "answer": 1,
+    "explanation": "Agents fill up with workspaces and image layers. The log looks like a random command failure. df on that agent is the check, then clean or replace the agent."
+  },
+  {
+    "id": 1347,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "options { timestamps() } helps because:",
+    "options": [
+      "It signs the image",
+      "Each log line shows when it ran, so a hang is visible",
+      "It stores secrets",
+      "It selects the Git branch"
+    ],
+    "answer": 1,
+    "explanation": "Without timestamps a ten-minute silent step looks like a short failure. The time on each line shows which command stuck."
+  },
+  {
+    "id": 1348,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Job configure permission in a folder is sensitive because:",
+    "options": [
+      "It only changes the theme",
+      "A person who can configure the job can often use that folder's credentials",
+      "It cannot read logs",
+      "It disables agents"
+    ],
+    "answer": 1,
+    "explanation": "Binding a credential does not require viewing the plain text. Treat configure as access to the secrets that folder holds."
+  },
+  {
+    "id": 1349,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "The controller container restarts and every job is gone. What was missing?",
+    "options": [
+      "A Jenkinsfile in Git",
+      "A persistent volume for JENKINS_HOME",
+      "An agent label",
+      "A webhook secret"
+    ],
+    "answer": 1,
+    "explanation": "The home directory is the controller. If it was the container filesystem, the restart discarded jobs, history, and credentials. Mount that path on a volume and back it up."
+  },
+  {
+    "id": 1350,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "For Amazon ECR, the better Jenkins credential story is:",
+    "options": [
+      "A permanent access key in the Jenkinsfile",
+      "The agent assumes a role and gets a short-lived ECR password during the job",
+      "Anonymous docker push",
+      "The developer's laptop key copied onto the controller"
+    ],
+    "answer": 1,
+    "explanation": "A role on the agent avoids a long-lived key in the credential store. If you must store a token, scope it to the folder and rotate it."
+  },
+  {
+    "id": 1351,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "You are about to delete a busy agent VM. What should you do first?",
+    "options": [
+      "Kill the controller",
+      "Drain it so running builds finish or are stopped on purpose",
+      "Remove the Jenkinsfile from Git",
+      "Open the credential store"
+    ],
+    "answer": 1,
+    "explanation": "A hard shutdown mid-deploy is a partial release and a red build. Drain, then delete. Ephemeral agents are already designed to disappear after the job, not during it."
+  },
+  {
+    "id": 1352,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "post { always { ... } } runs:",
+    "options": [
+      "Only when the build is green",
+      "After the build whether it succeeded or failed",
+      "Only on the controller's first boot",
+      "Only for pull requests"
+    ],
+    "answer": 1,
+    "explanation": "always is where cleanup belongs. success would skip the cleanup on the builds that need it most. failure is for notifications of a red build."
+  },
+  {
+    "id": 1353,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "A shared library is loaded without a version. Why is that risky?",
+    "options": [
+      "Libraries cannot contain Groovy",
+      "A commit to the library changes every job that loads it, immediately",
+      "The agent will ignore the Jenkinsfile",
+      "GitHub will reject the webhook"
+    ],
+    "answer": 1,
+    "explanation": "An unpinned library is an unpinned dependency. Pin a tag or a commit, and upgrade it the way you upgrade a plugin, so Tuesday's library commit is not Tuesday's outage."
+  },
+  {
+    "id": 1354,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Replay in Jenkins is useful when:",
+    "options": [
+      "You want to edit the Jenkinsfile for one run without committing, to test a fix",
+      "You want to change production secrets in Git",
+      "You want to skip the credential store permanently",
+      "You want to delete build history"
+    ],
+    "answer": 1,
+    "explanation": "Replay runs a modified script for that build so you can confirm a pipeline fix. The real fix still has to be committed. Replay is not a place to put a secret."
+  },
+  {
+    "id": 1355,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Two builds of the same job exist. How do you know which source each one compiled?",
+    "options": [
+      "By the agent's hostname only",
+      "By the commit SHA recorded on the build",
+      "By the Grafana panel",
+      "By the newest image tag on the laptop"
+    ],
+    "answer": 1,
+    "explanation": "The build page should show the commit. The build number is not the source revision. Deploy and debug the SHA, not 'whatever was latest'."
+  },
+  {
+    "id": 1356,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "docker.sock is mounted into builds on the controller. What is the risk?",
+    "options": [
+      "Builds get a faster cache only",
+      "A pipeline can control the Docker daemon that runs the controller",
+      "Credentials cannot be masked",
+      "Webhooks stop working"
+    ],
+    "answer": 1,
+    "explanation": "Access to the Docker socket is root on that daemon. If the daemon also runs the controller, a Jenkinsfile can inspect or replace it. Build on agents whose daemon is not the controller's."
+  },
+  {
+    "id": 1357,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "A stage timeout is useful because:",
+    "options": [
+      "It makes flaky tests pass",
+      "A hung command fails the build instead of occupying the agent overnight",
+      "It deletes old plugins",
+      "It pins the base image"
+    ],
+    "answer": 1,
+    "explanation": "Without a timeout, a stuck network call holds an executor until someone notices. The timeout fails that stage so the queue can move and the log shows where it stuck."
+  },
+  {
+    "id": 1358,
+    "category": "Jenkins",
+    "difficulty": "Beginner",
+    "question": "The Git plugin on the agent is required so that:",
+    "options": [
+      "Jenkins can clone the repository that contains the Jenkinsfile and the source",
+      "Grafana can query Prometheus",
+      "Kubernetes can schedule pods",
+      "Terraform can lock state"
+    ],
+    "answer": 0,
+    "explanation": "The agent performs the checkout. A controller that can reach GitHub is not enough if the agent has no Git client or no credential."
+  },
+  {
+    "id": 1359,
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Why archive JUnit or test reports on the build?",
+    "options": [
+      "To replace the image registry",
+      "So a failed test is visible on the build even after the workspace is cleaned",
+      "To store production secrets",
+      "To skip the next stage"
+    ],
+    "answer": 1,
+    "explanation": "cleanWs() removes the workspace, including raw surefire files. Archiving the report keeps the failure attached to the build number you will paste into the ticket."
+  },
+  {
+    "id": 1360,
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "Production deploy uses the same credential as feature-branch builds. What do you change?",
+    "options": [
+      "Nothing, one credential is simpler",
+      "Scope a deploy credential to the folder or stage that only main can use",
+      "Put the key in the Jenkinsfile when condition",
+      "Disable credentials binding"
+    ],
+    "answer": 1,
+    "explanation": "A pull request runs a Jenkinsfile the author controls. If that build can use the production deploy credential, the author can use it too. Separate the credential and do not expose it to untrusted branches."
+  },
+  {
+    "id": 1361,
+    "category": "Linux",
+    "difficulty": "Beginner",
+    "question": "set -euo pipefail at the top of a bash script is there so that:",
+    "options": [
+      "The script ignores failed commands",
+      "A failed command, an unset variable, or a failed pipe stops the script",
+      "The script always exits 0",
+      "sudo is no longer required"
+    ],
+    "answer": 1,
+    "explanation": "Without those options a pipeline can fail in the middle and the script still looks successful. CI then ships the failure."
+  },
+  {
+    "id": 1362,
+    "category": "Linux",
+    "difficulty": "Beginner",
+    "question": "What is the difference between a process and a systemd service?",
+    "options": [
+      "They are the same thing",
+      "A process is a running program; a service is the unit that starts and restarts it",
+      "A service is only a log file",
+      "A process always survives reboot"
+    ],
+    "answer": 1,
+    "explanation": "A process you started in a shell dies with the session. A unit starts it on boot, restarts it on failure, and keeps the logs in the journal."
+  },
+  {
+    "id": 1363,
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "systemctl enable does what, by itself?",
+    "options": [
+      "Starts the service now and does not affect boot",
+      "Links the unit into boot, and does not start it now",
+      "Deletes the unit",
+      "Opens a firewall port"
+    ],
+    "answer": 1,
+    "explanation": "enable and start answer different questions. enable --now does both. is-enabled and is-active tell them apart."
+  },
+  {
+    "id": 1364,
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "Why is chmod 777 a bad fix when an application cannot read its config?",
+    "options": [
+      "The mode is too strict",
+      "It makes the file world-writable instead of running the process as the right user",
+      "Linux ignores modes",
+      "It only affects directories"
+    ],
+    "answer": 1,
+    "explanation": "The process is running as the wrong user. World-writable config and binaries are how another account on the box changes the service."
+  },
+  {
+    "id": 1365,
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "df shows free space, but writes still fail. What else do you check?",
+    "options": [
+      "Only CPU",
+      "Inodes with df -i",
+      "The default route",
+      "The shebang"
+    ],
+    "answer": 1,
+    "explanation": "A filesystem can have free bytes and no free inodes. Creating a file then fails. df -i shows that separately."
+  },
+  {
+    "id": 1366,
+    "category": "Linux",
+    "difficulty": "Advanced",
+    "question": "du does not show space held by a deleted log. Why?",
+    "options": [
+      "du skips /var",
+      "A process still has the file open, so the space returns only when that process exits",
+      "Deleted files are inodes only",
+      "The journal hides them"
+    ],
+    "answer": 1,
+    "explanation": "The directory entry is gone and du cannot see it. lsof shows the open file. Truncate or restart the holder. Deleting again does not help."
+  },
+  {
+    "id": 1367,
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "curl to 127.0.0.1 works and curl from another host times out. Where is the fault?",
+    "options": [
+      "The process is not running",
+      "The path: firewall, security group, or bind address",
+      "DNS is always the cause",
+      "The disk is full"
+    ],
+    "answer": 1,
+    "explanation": "Localhost succeeding means the process is up. A timeout from outside is a filter or a route. Connection refused would mean nothing is listening on the address you used."
+  },
+  {
+    "id": 1368,
+    "category": "Linux",
+    "difficulty": "Beginner",
+    "question": "Connection refused means:",
+    "options": [
+      "DNS failed",
+      "The host was reached and nothing is accepting that port",
+      "Packets were dropped by a route",
+      "The disk is full"
+    ],
+    "answer": 1,
+    "explanation": "Refused is an active answer from the host. A timeout is a drop. A DNS error never became an address. Those are three different fixes."
+  },
+  {
+    "id": 1369,
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "sshd ignores authorized_keys when:",
+    "options": [
+      "The key is ed25519",
+      "The home directory or .ssh is writable by other users",
+      "The user is in a group",
+      "systemd is enabled"
+    ],
+    "answer": 1,
+    "explanation": "Loose permissions look like a key bug. sshd will not trust a keys file others can change. .ssh should be 700 and the key file 600."
+  },
+  {
+    "id": 1370,
+    "category": "Linux",
+    "difficulty": "Advanced",
+    "question": "You fixed a config by hand on one server and it worked. What is the durable step?",
+    "options": [
+      "Leave it, the server is now special",
+      "Put the change in the unit, the image, or Ansible so the next rebuild matches",
+      "chmod 777 the directory",
+      "Disable the service"
+    ],
+    "answer": 1,
+    "explanation": "A one-off edit disappears on the next image or becomes the only host that works. Cattle nodes are replaced, not nursed."
+  },
+  {
+    "id": 1371,
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "SIGTERM versus SIGKILL for a service stop:",
+    "options": [
+      "Both can be caught",
+      "TERM asks the process to finish work; KILL cannot be caught and is the last step",
+      "KILL is sent first",
+      "TERM deletes the unit file"
+    ],
+    "answer": 1,
+    "explanation": "systemctl stop and docker stop send TERM, wait, then KILL. An application that is not pid 1 may never see TERM, so the stop becomes a kill."
+  },
+  {
+    "id": 1372,
+    "category": "Linux",
+    "difficulty": "Beginner",
+    "question": "journalctl -u nginx shows:",
+    "options": [
+      "Only kernel panics",
+      "The logs for that systemd unit",
+      "The routing table",
+      "Deleted open files"
+    ],
+    "answer": 1,
+    "explanation": "The journal is where a unit's stdout and status go. A failed unit keeps the reason there. /var/log is the older file-based place."
+  },
+  {
+    "id": 1373,
+    "category": "Python",
+    "difficulty": "Beginner",
+    "question": "A DevOps Python command should tell the pipeline it failed by:",
+    "options": [
+      "Printing OK and exiting 0",
+      "Exiting with a non-zero status",
+      "Writing a desktop notification",
+      "Sleeping until killed"
+    ],
+    "answer": 1,
+    "explanation": "The exit code is the contract. 0 is success. 1 is a finding. An unexpected traceback also fails the job, but a known finding should be an explicit non-zero exit."
+  },
+  {
+    "id": 1374,
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "Why pass subprocess arguments as a list instead of one shell string?",
+    "options": [
+      "The list is shorter",
+      "A value cannot become a second command the way it can inside a shell string",
+      "shell=True is required for git",
+      "Lists disable timeouts"
+    ],
+    "answer": 1,
+    "explanation": "shell=True with an f-string turns a filename or a branch name into shell syntax. A list runs one program with separate arguments."
+  },
+  {
+    "id": 1375,
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "An HTTP health check in a pipeline must set a timeout because:",
+    "options": [
+      "Timeouts make 500 responses look successful",
+      "Without one, a hung connection holds the agent until a person notices",
+      "urllib cannot read status codes",
+      "Timeouts replace exit codes"
+    ],
+    "answer": 1,
+    "explanation": "The default can wait forever. A few seconds, then a failed check, keeps the queue moving. Do not log response bodies that might contain tokens."
+  },
+  {
+    "id": 1376,
+    "category": "Python",
+    "difficulty": "Beginner",
+    "question": "JSON log files that are one object per line should be read by:",
+    "options": [
+      "json.loads on the whole file",
+      "Parsing each non-empty line as its own JSON value",
+      "Evaluating the file as Python",
+      "Splitting on commas only"
+    ],
+    "answer": 1,
+    "explanation": "JSON Lines is not one array. Loading the whole file as a single value fails, or it forces a huge document into memory. A bad line should fail the run if the file is supposed to be JSON."
+  },
+  {
+    "id": 1377,
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "A script found a password in a file. What should the CI log contain?",
+    "options": [
+      "The password, so the reviewer can see it",
+      "The path and the check name, not the secret value",
+      "The full environment",
+      "Nothing, and exit 0"
+    ],
+    "answer": 1,
+    "explanation": "The finding is the leak. Printing the value copies it into the build log. Exit non-zero after the path is reported."
+  },
+  {
+    "id": 1378,
+    "category": "Python",
+    "difficulty": "Advanced",
+    "question": "The pipeline pip-installs your tool without a pin and today's run breaks. What was missing?",
+    "options": [
+      "A longer timeout",
+      "A locked version so the agent installs the same code the tests ran against",
+      "shell=True",
+      "A chmod 777"
+    ],
+    "answer": 1,
+    "explanation": "An unpinned install is an unpinned dependency. Pin the version, or commit a lock file, and install into a virtualenv so jobs do not share one system interpreter."
+  },
+  {
+    "id": 1379,
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "pathlib is preferable to hand-built path strings because:",
+    "options": [
+      "It only works on Windows",
+      "Separators and encoding stay correct on the agent and on a laptop",
+      "It executes shell commands",
+      "It disables tests"
+    ],
+    "answer": 1,
+    "explanation": "A Linux agent and a Windows laptop do not use the same separator. Path and an explicit utf-8 encoding keep the script from depending on the machine."
+  },
+  {
+    "id": 1380,
+    "category": "Python",
+    "difficulty": "Beginner",
+    "question": "release-preflight exits 1 when:",
+    "options": [
+      "The directory is clean",
+      "It finds a secret, a floating image tag, a root container, or a workload with no resource requests",
+      "The path does not exist",
+      "Python is older than 3.10"
+    ],
+    "answer": 1,
+    "explanation": "Exit 1 is a finding and should fail the pipeline. Exit 2 is a usage or missing-path error. Exit 0 means the tree passed the local gates."
+  },
+  {
+    "id": 1381,
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "Which problem is a good fit for a short Python tool rather than a shell one-liner?",
+    "options": [
+      "Print the current directory",
+      "Branching checks over JSON, with a test the pipeline can run",
+      "Change file mode with chmod",
+      "Show the date"
+    ],
+    "answer": 1,
+    "explanation": "The shell is enough for a single check. JSON, several rules, and a unit test are why this repo's release-preflight is Python. Ansible and Terraform still own machines and cloud resources."
+  },
+  {
+    "id": 1382,
+    "category": "Python",
+    "difficulty": "Advanced",
+    "question": "kubectl output is parsed by splitting columns of the human table. Why is that fragile?",
+    "options": [
+      "kubectl cannot print pods",
+      "The table is for people and the columns move; use a JSON format or an API",
+      "JSON is larger",
+      "Tables are stable forever"
+    ],
+    "answer": 1,
+    "explanation": "A new column breaks the split. Prefer kubectl's JSON output or the API. subprocess is for when you must run a command, not for scraping a UI."
   }
 ]
