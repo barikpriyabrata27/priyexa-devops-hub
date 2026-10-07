@@ -639,7 +639,7 @@ const ANSWER_ACTION_WORDS = new Set(
 function parseQfiQuestionBank(markdown) {
 
   const headings = [
-    ...markdown.matchAll(/^###\s+(\d+)\.\s+(.+?)\s*$/gm)
+    ...markdown.matchAll(/^##\s+(\d+)\.\s+(.+?)\s*$/gm)
   ];
 
   return headings.map((heading, index) => {
