@@ -23,4 +23,4 @@ A timeout is not a refusal. Opening a security group does not fix a process boun
 
 `ip route` shows the default gateway. If every destination fails, the fault is local or the gateway. If one destination fails, the fault is that path. `ping` proves almost nothing about TCP. Test the port you care about.
 
-In Kubernetes the pod's resolver is CoreDNS, written in `/etc/resolv.conf`. Names that work on your laptop and fail in the pod are split DNS or a private zone. Read [GCP networking](../gcp/networking.md) or [AWS VPC](../aws/vpc.md) when the packet has already left the machine. This page stops at the host.
+In Kubernetes the pod's resolver is CoreDNS, written in `/etc/resolv.conf`. Names that work on your laptop and fail in the pod are split DNS or a private zone. Read [GCP networking](../gcp/networking.md) or [AWS VPC](../aws/vpc.md) when the packet has already left the machine. This page stops at the host. The protocol path, from the OSI model through MTU and BGP, is in [Networking](../networking/README.md).

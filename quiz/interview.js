@@ -53,6 +53,7 @@ const CATEGORY_KNOWLEDGE = {
   "Jenkins": `${KNOWLEDGE_BASE_URL}/jenkins/README.md`,
   "Observability": `${KNOWLEDGE_BASE_URL}/observability/README.md`,
   "Linux": `${KNOWLEDGE_BASE_URL}/linux/README.md`,
+  "Networking": `${KNOWLEDGE_BASE_URL}/networking/README.md`,
   "Python": `${KNOWLEDGE_BASE_URL}/python/README.md`,
   "Ansible": `${KNOWLEDGE_BASE_URL}/ansible/README.md`,
   "Authentication & Authorization": `${KNOWLEDGE_BASE_URL}/auth/authentication-and-authorization.md`
@@ -1978,8 +1979,8 @@ async function init() {
   state.questions = state.quizQuestions;
   state.qfiQuestions = parseQfiQuestionBank(await qfiResponse.text());
 
-  if (state.qfiQuestions.length !== 452) {
-    throw new Error(`Expected 452 QFI questions, found ${state.qfiQuestions.length}`);
+  if (state.qfiQuestions.length !== 500) {
+    throw new Error(`Expected 500 QFI questions, found ${state.qfiQuestions.length}`);
   }
 
 

@@ -21,7 +21,7 @@ You will see this on Jenkins agents, bastions, Kubernetes nodes, and the VM unde
 - [systemd](systemd.md) — start, restart, and survive a reboot
 - [Permissions](permissions.md) — owners, modes, and why 777 is an incident
 - [Disk and logs](disk.md) — full disks and the files that filled them
-- [Networking](networking.md) — DNS, ports, and routes
+- [Host networking](networking.md) — DNS, ports, and routes on the machine. Protocols from OSI through MTU are in [Networking](../networking/README.md)
 - [Users and SSH](ssh.md) — logins you can revoke
 - [Troubleshooting](troubleshooting.md) — the order to check
 

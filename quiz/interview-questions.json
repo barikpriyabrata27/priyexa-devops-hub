@@ -15497,7 +15497,7 @@
       "Ignore it since bucket policies rarely matter for security"
     ],
     "answer": 0,
-    "explanation": "A public bucket must be closed immediately, but closing it isn't enough on its own — CloudTrail data events show what was actually read, which drives whether disclosure or further response is required."
+    "explanation": "A public bucket must be closed immediately, but closing it isn't enough on its own \u2014 CloudTrail data events show what was actually read, which drives whether disclosure or further response is required."
   },
   {
     "id": 1105,
@@ -16001,7 +16001,7 @@
     "type": "scenario",
     "question": "A resource's `count` depends on a value only known after apply (like a data source result), and Terraform fails with an error about the count value being unknown until apply. What is the fix?",
     "options": [
-      "Refactor to avoid apply-time-unknown values driving `count` — for example, use `for_each` over a statically known set, or split the change into two applies",
+      "Refactor to avoid apply-time-unknown values driving `count` \u2014 for example, use `for_each` over a statically known set, or split the change into two applies",
       "Always use `count = 1` to avoid the error",
       "Disable Terraform's plan-time validation",
       "Switch the entire configuration to a different tool"
@@ -16031,7 +16031,7 @@
     "type": "scenario",
     "question": "A generated administrator password is stored as a Terraform output and ends up in plaintext in the remote state file, which several engineers can read via S3 access. What should change?",
     "options": [
-      "Restrict and encrypt access to the state backend tightly, and avoid storing long-lived secrets as plain Terraform outputs — generate and store them in a secrets manager instead",
+      "Restrict and encrypt access to the state backend tightly, and avoid storing long-lived secrets as plain Terraform outputs \u2014 generate and store them in a secrets manager instead",
       "Stop using outputs entirely for any value",
       "Store the state file locally on each engineer's laptop instead",
       "Rotate the password every time someone views the state file"
@@ -16352,7 +16352,7 @@
       "Nothing needs to change since Secrets are always fully protected"
     ],
     "answer": 0,
-    "explanation": "Base64 is a reversible encoding scheme, not encryption — anyone with read access to the Secret object can trivially decode it. Encryption at rest and/or an external secrets manager provide real protection."
+    "explanation": "Base64 is a reversible encoding scheme, not encryption \u2014 anyone with read access to the Secret object can trivially decode it. Encryption at rest and/or an external secrets manager provide real protection."
   },
   {
     "id": 1162,
@@ -17516,7 +17516,7 @@
     "type": "scenario",
     "question": "A team assumes their StatefulSet's data is fully backed up because volume snapshots exist for each replica, but a restore attempt reveals the snapshots were taken at different times with no coordination, leaving the data inconsistent. What should backup procedures account for?",
     "options": [
-      "The application's real consistency model — for example, quiescing writes or using application-aware backup tooling — rather than relying on independently timed raw volume snapshots",
+      "The application's real consistency model \u2014 for example, quiescing writes or using application-aware backup tooling \u2014 rather than relying on independently timed raw volume snapshots",
       "Simply taking snapshots more frequently to reduce the time gap",
       "Assuming any snapshot is equally valid regardless of application state",
       "Backing up only one replica since the others should be identical"
@@ -19546,5 +19546,1657 @@
     ],
     "answer": 1,
     "explanation": "A new column breaks the split. Prefer kubectl's JSON output or the API. subprocess is for when you must run a command, not for scraping a UI."
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "In the OSI model, TCP ports and retransmission belong to which layer?",
+    "options": [
+      "Transport (layer 4)",
+      "Physical (layer 1)",
+      "Data link (layer 2)",
+      "Session (layer 5), because every connection is a session"
+    ],
+    "answer": 0,
+    "explanation": "Layer 4 is the transport layer: TCP, UDP, ports, and retransmission. HTTP is application. IP routing is network (layer 3).",
+    "id": 1383,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "A successful ping proves that:",
+    "options": [
+      "HTTPS on port 443 is healthy",
+      "ICMP reached the host and a reply came back; TCP on the service port can still be blocked",
+      "DNS is correct",
+      "The TLS certificate is valid"
+    ],
+    "answer": 1,
+    "explanation": "Ping is ICMP, often filtered, and it never opens the service port. A failed ping does not prove the service is down, and a successful one does not prove it is up.",
+    "id": 1384,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "What does the prefix length in 10.20.0.0/24 mean?",
+    "options": [
+      "The network has 24 usable hosts",
+      "The first 24 bits identify the network, and the rest are host bits",
+      "Only port 24 is open",
+      "The address is IPv6"
+    ],
+    "answer": 1,
+    "explanation": "A longer prefix is a smaller network. /24 is 256 addresses before you subtract reserved ones. /16 is much larger. /32 is a single host.",
+    "id": 1385,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "Which range is the whole of the RFC 1918 block that starts at 172.16?",
+    "options": [
+      "172.0.0.0/8",
+      "172.16.0.0/12, which is 172.16.0.0 through 172.31.255.255",
+      "172.16.0.0/16 only",
+      "172.16.0.0/24 only"
+    ],
+    "answer": 1,
+    "explanation": "172.16.0.0/12 covers 172.16 through 172.31. Treating all of 172.0.0.0/8 as private mis-classifies public space.",
+    "id": 1386,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "A process listens on 127.0.0.1:8080 and the security group allows the world. What can remote clients do?",
+    "options": [
+      "Connect, because the security group is open",
+      "Nothing useful: 127.0.0.1 is only reachable on that host",
+      "Connect if they use IPv6",
+      "Connect after DNS TTL expires"
+    ],
+    "answer": 1,
+    "explanation": "The bind address is the host itself. Opening a firewall does not publish a localhost listener. Bind to the interface clients should use.",
+    "id": 1387,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "Two VPCs both use 10.0.0.0/16 and you try to peer them. What happens?",
+    "options": [
+      "Peering rewrites one side automatically",
+      "Routes conflict because the same prefix exists in both networks",
+      "NAT is implied by peering",
+      "Only IPv6 is affected"
+    ],
+    "answer": 1,
+    "explanation": "Peering needs non-overlapping ranges so a route has one destination. NAT between them is a workaround. Plan the address space before the second network exists.",
+    "id": 1388,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "Connection refused, as opposed to a timeout, means:",
+    "options": [
+      "DNS returned NXDOMAIN",
+      "The SYN reached a host and nothing accepted that port",
+      "A firewall dropped the packet",
+      "The TLS certificate expired"
+    ],
+    "answer": 1,
+    "explanation": "A refusal is an active reset. A drop, a black-hole route, or a dead host looks like a timeout. Those are different fixes.",
+    "id": 1389,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "Why do DNS, and HTTP/3 via QUIC, use UDP?",
+    "options": [
+      "UDP has a three-way handshake and retransmits in order",
+      "UDP sends datagrams without a TCP handshake; the application adds whatever reliability it needs",
+      "UDP can only be used on port 53",
+      "Firewalls cannot see UDP"
+    ],
+    "answer": 1,
+    "explanation": "UDP does not handshake or resequence. DNS accepts that. QUIC builds streams on UDP, which is why blocking UDP/443 breaks HTTP/3 even when TCP/443 works.",
+    "id": 1390,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Advanced",
+    "question": "A server has a growing number of sockets in CLOSE_WAIT. What does that indicate?",
+    "options": [
+      "The firewall is dropping SYN packets",
+      "The peer closed, and the local process has not closed its side",
+      "TIME_WAIT was disabled",
+      "DNS TTL is too high"
+    ],
+    "answer": 1,
+    "explanation": "CLOSE_WAIT is an application bug: close was received and the process did not call close. TIME_WAIT after an active close is normal. Do not treat every waiting socket as a firewall fault.",
+    "id": 1391,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "Clients keep a large TIME_WAIT count after short connections. What is the sound fix?",
+    "options": [
+      "Disable TIME_WAIT so ports can be reused immediately",
+      "Shorten connection lifetime carefully and reuse connections, without turning TIME_WAIT off",
+      "Switch the service to ICMP",
+      "Open the port on 0.0.0.0/0"
+    ],
+    "answer": 1,
+    "explanation": "TIME_WAIT stops old packets from joining a new connection. Exhausted ephemeral ports are fixed by reuse and fewer short connections, not by deleting the protection.",
+    "id": 1392,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "NXDOMAIN means:",
+    "options": [
+      "The resolver could not complete the lookup",
+      "The name is not in the zone",
+      "The TCP port is closed",
+      "The certificate name does not match"
+    ],
+    "answer": 1,
+    "explanation": "NXDOMAIN is a definitive 'no such name' and it is cached. SERVFAIL means the resolver failed to get a usable answer. A timeout means you did not reach a resolver.",
+    "id": 1393,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "A CNAME record does what?",
+    "options": [
+      "Maps a name directly to an IPv4 address",
+      "Points a name at another name, which is then resolved",
+      "Publishes the mail servers for the zone",
+      "Sets the firewall priority"
+    ],
+    "answer": 1,
+    "explanation": "A is a name to IPv4. AAAA is a name to IPv6. CNAME aliases one name to another. MX is mail. A long CNAME chain adds lookups.",
+    "id": 1394,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "You will move a DNS name to a new load balancer tonight. What should you have changed earlier?",
+    "options": [
+      "Raised the TTL so caches keep the old answer longer",
+      "Lowered the TTL so caches discard the old address sooner",
+      "Deleted the NS records",
+      "Switched the name to a TXT record"
+    ],
+    "answer": 1,
+    "explanation": "Caches keep the previous answer for the TTL. Lower it before the move. Changing it during the move does not expire answers already cached.",
+    "id": 1395,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "A name resolves on a laptop and not inside a pod. What is the first place to look?",
+    "options": [
+      "The pod's resolver and search list, which are not the laptop's resolver",
+      "The TLS cipher list",
+      "The default file mode",
+      "The container image tag"
+    ],
+    "answer": 0,
+    "explanation": "Split DNS and CoreDNS search paths (including ndots) mean the pod and the laptop ask different questions. Compare dig on both before changing the application.",
+    "id": 1396,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "HTTP 401 versus HTTP 403:",
+    "options": [
+      "401 means the server crashed",
+      "401 means unauthenticated; 403 means authenticated but not allowed",
+      "403 means try again after DNS TTL",
+      "They are interchangeable"
+    ],
+    "answer": 1,
+    "explanation": "401 is 'who are you?' 403 is 'I know, and no.' Sending people to the wrong system wastes the incident. 500 is the application failing.",
+    "id": 1397,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "A client receives HTTP 504 from the load balancer. Where is the fault most likely?",
+    "options": [
+      "DNS never resolved",
+      "The proxy waited for the upstream and gave up",
+      "The client certificate was expired",
+      "The SYN was refused before TCP connected"
+    ],
+    "answer": 1,
+    "explanation": "502 means the proxy got a bad or no valid response. 504 means it timed out waiting. Both mean the client reached the proxy. Look at the proxy and the upstream, not at DNS.",
+    "id": 1398,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "Browsers report a certificate name mismatch after a new hostname is pointed at an existing listener. Why?",
+    "options": [
+      "DNS TTL cannot be lower than a day",
+      "The certificate presented does not list the hostname the client used",
+      "Layer 4 load balancers always rewrite Server Name Indication",
+      "UDP is blocked"
+    ],
+    "answer": 1,
+    "explanation": "The client checks the subject alternative name against the host it requested. The old listener still has the old certificate until you add the name and reload.",
+    "id": 1399,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "A renewed certificate is on disk and clients still see the expired one. What was missed?",
+    "options": [
+      "The process that loaded the certificate was not reloaded",
+      "The CIDR prefix is too short",
+      "TIME_WAIT is holding the old certificate",
+      "Peering is not transitive"
+    ],
+    "answer": 0,
+    "explanation": "Renewal is finished when the serving process loads the new file. Alert weeks before expiry, and automate the reload rather than waiting for a restart someone forgets.",
+    "id": 1400,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "Which route wins for a packet to 10.20.1.10 when the table has 10.20.0.0/16 and 10.20.1.0/24?",
+    "options": [
+      "The default route, always",
+      "10.20.1.0/24, because the longest matching prefix wins",
+      "Whichever line was added first",
+      "Both, and the packet is duplicated"
+    ],
+    "answer": 1,
+    "explanation": "Most specific prefix wins, not the first line a person would read. The default route is only for destinations that match nothing more specific.",
+    "id": 1401,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Advanced",
+    "question": "SYN goes out through firewall A and the reply returns through firewall B. Clients time out. Why?",
+    "options": [
+      "DNS TTL is higher than the handshake timer",
+      "Firewall B has no state for a connection it did not see start, so it drops the reply",
+      "TCP forbids asymmetric MAC addresses",
+      "The certificate chain is too long"
+    ],
+    "answer": 1,
+    "explanation": "Stateful devices must see both directions. Asymmetric routing makes the return path look unsolicited. The server may have answered while the client only sees a timeout.",
+    "id": 1402,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Beginner",
+    "question": "Source NAT on a private subnet allows instances to:",
+    "options": [
+      "Accept new connections from the internet on every port",
+      "Open outbound connections that appear to come from the NAT address",
+      "Replace the need for a firewall",
+      "Peer with an overlapping CIDR"
+    ],
+    "answer": 1,
+    "explanation": "SNAT rewrites the source so replies can come back. It does not publish the instance. The firewall beside the NAT is still the access policy.",
+    "id": 1403,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "A stateful firewall rule allows outbound TCP/443. What else is required for replies?",
+    "options": [
+      "An explicit rule for every ephemeral return port",
+      "Nothing for those connections: the firewall allows the return traffic it already tracked",
+      "A public address on every client",
+      "A CNAME at the zone apex"
+    ],
+    "answer": 1,
+    "explanation": "State tracks the connection. A stateless ACL does not, so the return traffic needs its own rule. Know which product you are configuring.",
+    "id": 1404,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "You need /api and /static to go to different pools, and TLS is terminated here. Which balancer fits?",
+    "options": [
+      "A layer-4 balancer, because it reads the HTTP path without decrypting",
+      "A layer-7 proxy that terminates TLS and routes on the request",
+      "A DNS A record alone",
+      "An ICMP health check with no proxy"
+    ],
+    "answer": 1,
+    "explanation": "Layer 4 sees IP and port only. Routing on the URL requires reading HTTP, which means terminating TLS or otherwise exposing the request.",
+    "id": 1405,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "The load balancer health check always returns HTTP 200. What is the production effect?",
+    "options": [
+      "Broken instances are removed immediately",
+      "Broken instances stay in rotation and keep receiving traffic",
+      "TLS is bypassed",
+      "The check proves the database is reachable"
+    ],
+    "answer": 1,
+    "explanation": "The balancer trusts the check. A handler that cannot fail keeps a dead process in service. A check that depends on a shared database can also evict the whole fleet at once.",
+    "id": 1406,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "Why drain connections before stopping an instance in a rolling deploy?",
+    "options": [
+      "To lower the DNS TTL",
+      "To stop new work and let in-flight requests finish, instead of cutting them into 502s",
+      "To force sticky sessions onto one replica",
+      "To disable the security group"
+    ],
+    "answer": 1,
+    "explanation": "Deregistration delay is the difference between a clean rollout and a burst of proxy errors. Stickiness is a separate choice and usually hides in-memory session state.",
+    "id": 1407,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Advanced",
+    "question": "VPC A is peered to B, and B is peered to C. Can A reach C through those peerings?",
+    "options": [
+      "Yes, peering is transitive",
+      "No; each pair that must communicate needs its own peering or a transit network",
+      "Yes, if the security groups are empty",
+      "Only when both use the same CIDR"
+    ],
+    "answer": 1,
+    "explanation": "Cloud peering does not forward across a third network. A mesh has to be explicit. Overlapping CIDRs are a separate reason a route will be refused.",
+    "id": 1408,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "IPsec shows phase 1 and phase 2 up, and hosts still cannot connect. What is still unchecked?",
+    "options": [
+      "Only the pre-shared key",
+      "Routes for the inner prefixes, and firewalls that allow those inner packets",
+      "The TLS version inside ICMP",
+      "Whether the CNAME is at the apex"
+    ],
+    "answer": 1,
+    "explanation": "A negotiated tunnel is not a route and not an allow rule. Check both routing tables, then a filter on the inner addresses, then a TCP connect to the real port.",
+    "id": 1409,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Advanced",
+    "question": "Small health checks succeed through a VPN, but large requests hang. What is the usual cause?",
+    "options": [
+      "A path-MTU black hole: a hop cannot carry the packet and does not report that",
+      "HTTP 401 from the health check",
+      "An A record with a one-second TTL",
+      "Sticky sessions on a layer-4 balancer"
+    ],
+    "answer": 0,
+    "explanation": "Tunnels reduce the usable packet size. If fragmentation-needed messages are dropped, small packets work and a large TLS record or POST stalls. Clamp the MSS or lower the MTU.",
+    "id": 1410,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Advanced",
+    "question": "In BGP, what happens if you announce a more specific prefix than you intended?",
+    "options": [
+      "The shorter prefix always wins",
+      "The more specific prefix wins, so you can attract traffic you did not mean to",
+      "Both prefixes are ignored",
+      "DNS TTL overrides the announcement"
+    ],
+    "answer": 1,
+    "explanation": "Longest prefix match applies between networks too. A /25 announced beside a /24 pulls that half of the range. Withdrawals are not instant everywhere.",
+    "id": 1411,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Advanced",
+    "question": "Anycast announces the same address from several sites. What should a failed site do?",
+    "options": [
+      "Keep announcing so clients retry locally",
+      "Withdraw the announcement so routing stops delivering clients to the dead site",
+      "Switch the address to a CNAME",
+      "Lower the TCP receive window to zero"
+    ],
+    "answer": 1,
+    "explanation": "Routing sends the client to a nearby announcement. If a dead site is still announced, anycast keeps delivering the outage. Sessions are not automatically pinned to one site.",
+    "id": 1412,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "HTTP/3 is enabled and some networks cannot use it. What is often blocked?",
+    "options": [
+      "TCP port 443",
+      "UDP port 443, which QUIC needs",
+      "ICMP echo only",
+      "DNS TXT records"
+    ],
+    "answer": 1,
+    "explanation": "QUIC runs on UDP. Networks that allow TCP/443 and drop UDP break HTTP/3. Clients should fall back, and UDP/443 has to be tested as its own path.",
+    "id": 1413,
+    "category": "Networking"
+  },
+  {
+    "difficulty": "Intermediate",
+    "question": "A capture on the server shows the SYN arriving and no SYN-ACK leaving. What does that tell you?",
+    "options": [
+      "DNS failed before the packet was sent",
+      "The packet reached this host and the host did not answer the handshake",
+      "The client certificate expired",
+      "BGP withdrew the prefix"
+    ],
+    "answer": 1,
+    "explanation": "tcpdump answers who stopped talking. A SYN with no reply is a local listener, a host firewall, or a drop on the way out. Capture headers, not a disk full of payloads that may contain secrets.",
+    "id": 1414,
+    "category": "Networking"
+  },
+  {
+    "category": "AWS",
+    "difficulty": "Intermediate",
+    "question": "Private instances pull from S3 through a NAT gateway and the NAT line dominates the bill. What avoids that path?",
+    "options": [
+      "A public IP on every instance",
+      "A gateway VPC endpoint for S3, so that traffic stays on the Amazon network",
+      "A smaller subnet mask",
+      "Disabling the S3 bucket policy"
+    ],
+    "answer": 1,
+    "explanation": "A gateway endpoint for S3 does not use the NAT gateway. The private route table sends the S3 prefix to the endpoint instead of 0.0.0.0/0.",
+    "id": 1415
+  },
+  {
+    "category": "AWS",
+    "difficulty": "Advanced",
+    "question": "An IAM policy allows s3:GetObject and the bucket policy explicitly denies it. What is the result?",
+    "options": [
+      "The allow wins because IAM is checked first",
+      "The explicit deny wins",
+      "The request is allowed if the caller is in the same account",
+      "S3 ignores bucket policies when IAM allows the call"
+    ],
+    "answer": 1,
+    "explanation": "An explicit deny overrides an allow. You need both the identity policy and the bucket policy to permit the call, and neither may deny it.",
+    "id": 1416
+  },
+  {
+    "category": "AWS",
+    "difficulty": "Intermediate",
+    "question": "Multi-AZ RDS fails over to the standby. What does that failover not do?",
+    "options": [
+      "Move the DNS name to the promoted standby",
+      "Protect you from dropping the table, or from a bad migration that replicated",
+      "Keep a synchronous copy in another Availability Zone",
+      "Require clients to reconnect"
+    ],
+    "answer": 1,
+    "explanation": "The standby is a copy of the same data, including the mistake. Failover is for an infrastructure failure, not for logical data loss. Take backups you have restored.",
+    "id": 1417
+  },
+  {
+    "category": "Ansible",
+    "difficulty": "Intermediate",
+    "question": "Every run of a playbook reports changed, including the second run on an unchanged server. What is missing?",
+    "options": [
+      "A longer timeout",
+      "Idempotence: tasks should change the host only when the desired state is absent",
+      "The become password printed in the log",
+      "A handler that always runs"
+    ],
+    "answer": 1,
+    "explanation": "Ansible's value is a second run that changes nothing when the machine already matches. A task that always restarts or always rewrites a file is not idempotent.",
+    "id": 1418
+  },
+  {
+    "category": "Ansible",
+    "difficulty": "Beginner",
+    "question": "A handler that restarts a service runs when:",
+    "options": [
+      "Any task in the play fails",
+      "A task notifies it, which should happen only when that task changed something",
+      "The inventory is empty",
+      "Ansible Vault is locked"
+    ],
+    "answer": 1,
+    "explanation": "Handlers batch restarts at the end of the play. If the notifying task reports changed every time, the handler restarts every time. Fix the task.",
+    "id": 1419
+  },
+  {
+    "category": "Ansible",
+    "difficulty": "Advanced",
+    "question": "A vault password is passed as -e on the command line. Besides the play, where can it leak?",
+    "options": [
+      "Only inside the encrypted file",
+      "The process list and the shell history of the person who ran it",
+      "The remote host's crontab only",
+      "It cannot leak because -e is encrypted in flight"
+    ],
+    "answer": 1,
+    "explanation": "Command-line extra vars are visible to other users on the controller via the process list. Pass the vault password file with restricted permissions, or use a prompt, and do not echo it.",
+    "id": 1420
+  },
+  {
+    "category": "Authentication and Authorization",
+    "difficulty": "Intermediate",
+    "question": "A pipeline has stored a long-lived cloud admin key. What should replace it?",
+    "options": [
+      "The same key, copied into more repositories",
+      "A short-lived credential from OIDC federation into a role that can only deploy",
+      "A shared root login",
+      "The key committed next to the workflow so review can see it"
+    ],
+    "answer": 1,
+    "explanation": "Federation gives the job a token that expires and is scoped to one role. A static admin key in CI is a permanent credential in the place attackers look first.",
+    "id": 1421
+  },
+  {
+    "category": "Authentication and Authorization",
+    "difficulty": "Beginner",
+    "question": "Least privilege for a deploy role means the role can:",
+    "options": [
+      "Administer the account, because deploys are important",
+      "Perform the deploy actions and nothing it does not need",
+      "Read every secret so the pipeline never fails closed",
+      "Skip audit logs"
+    ],
+    "answer": 1,
+    "explanation": "A deploy role that can also delete databases or read every secret turns a build compromise into a full account compromise. Name the actions.",
+    "id": 1422
+  },
+  {
+    "category": "Authentication and Authorization",
+    "difficulty": "Intermediate",
+    "question": "Base64-encoding a password before you put it in a manifest:",
+    "options": [
+      "Encrypts it",
+      "Does not encrypt it; anyone can decode it",
+      "Rotates it",
+      "Binds it to one pod"
+    ],
+    "answer": 1,
+    "explanation": "Encoding is not access control. Encryption, an identity-based secret store, and a policy that limits who can read the value are what protect it.",
+    "id": 1423
+  },
+  {
+    "category": "Bamboo",
+    "difficulty": "Beginner",
+    "question": "In Bamboo, the usual containment is:",
+    "options": [
+      "A task contains plans, and a plan contains agents",
+      "A plan contains jobs, and a job contains tasks that run on an agent",
+      "An agent contains the deployment project only",
+      "A stage replaces the repository"
+    ],
+    "answer": 1,
+    "explanation": "Plans are the build definition. Jobs run in parallel where you split them. Tasks are the steps inside a job, and they run on an agent.",
+    "id": 1424
+  },
+  {
+    "category": "Bamboo",
+    "difficulty": "Intermediate",
+    "question": "Elastic agents are for:",
+    "options": [
+      "Storing build artifacts permanently",
+      "Starting agents when builds are waiting, instead of paying for idle agents all day",
+      "Replacing the Git repository",
+      "Signing container images"
+    ],
+    "answer": 1,
+    "explanation": "Elastic agents scale build capacity with demand. They still need a clean image and no secrets baked in, because they are created and destroyed.",
+    "id": 1425
+  },
+  {
+    "category": "Bamboo",
+    "difficulty": "Intermediate",
+    "question": "A deployment project is separate from the build plan so that:",
+    "options": [
+      "Every environment rebuilds the binary from a different commit",
+      "The same tested artifact can be promoted through environments",
+      "Agents can skip tests",
+      "Credentials are printed on the build result"
+    ],
+    "answer": 1,
+    "explanation": "Promotion means the bytes that passed test are the bytes that reach production. Rebuilding per environment is how those bytes drift.",
+    "id": 1426
+  },
+  {
+    "category": "CI/CD",
+    "difficulty": "Beginner",
+    "question": "CI and CD divide the work as:",
+    "options": [
+      "CI deploys to production and CD only compiles",
+      "CI produces a tested artifact from a commit; CD releases that artifact",
+      "They are two names for a manual shell script",
+      "CD runs only on a laptop"
+    ],
+    "answer": 1,
+    "explanation": "Continuous integration answers whether this commit builds and passes. Continuous delivery or deployment answers how that same result is released.",
+    "id": 1427
+  },
+  {
+    "category": "CI/CD",
+    "difficulty": "Intermediate",
+    "question": "The deploy stage rebuilds the container image instead of pulling the one CI pushed. What is wrong?",
+    "options": [
+      "Nothing, rebuilds are more secure",
+      "Production may not be the artifact the tests ran against",
+      "Registries cannot store more than one tag",
+      "Layers cannot be cached"
+    ],
+    "answer": 1,
+    "explanation": "A second build can pick up a new base layer or a different dependency. Deploy the digest CI published.",
+    "id": 1428
+  },
+  {
+    "category": "CI/CD",
+    "difficulty": "Intermediate",
+    "question": "Main is red and a release is cut from that commit anyway. What control failed?",
+    "options": [
+      "The artifact registry ran out of disk",
+      "The branch protection or the pipeline gate that should refuse a failed commit",
+      "DNS TTL",
+      "The Dockerfile USER line"
+    ],
+    "answer": 1,
+    "explanation": "A red default branch is not a suggestion. The release should be cut only from a commit the required checks have passed.",
+    "id": 1429
+  },
+  {
+    "category": "DevSecOps",
+    "difficulty": "Beginner",
+    "question": "SAST and DAST differ because:",
+    "options": [
+      "SAST attacks a running URL; DAST reads the repository",
+      "SAST analyzes source or bytecode; DAST exercises a running application",
+      "They scan the same thing at the same time",
+      "DAST replaces authentication"
+    ],
+    "answer": 1,
+    "explanation": "Static analysis finds bugs in the code you have. Dynamic analysis finds behavior of the app that is actually running, including the routes the scanner can reach.",
+    "id": 1430
+  },
+  {
+    "category": "DevSecOps",
+    "difficulty": "Intermediate",
+    "question": "The image scan was clean on Monday. A CVE in the base image is published on Wednesday. What is true?",
+    "options": [
+      "Monday's scan still covers Wednesday",
+      "A point-in-time scan does not know about vulnerabilities disclosed later",
+      "Base images are excluded from CVEs",
+      "The digest changes automatically"
+    ],
+    "answer": 1,
+    "explanation": "Rescan images you still run. A clean build is not a permanent claim. Rebuild on a patched base and deploy the new digest.",
+    "id": 1431
+  },
+  {
+    "category": "DevSecOps",
+    "difficulty": "Advanced",
+    "question": "A Dockerfile copies a secret, uses it, and deletes the file in a later layer. Where is the secret?",
+    "options": [
+      "Gone, because the file was deleted",
+      "Still in the earlier layer, and anyone who pulls the image can read that layer",
+      "Only in the container log",
+      "Encrypted by the FROM line"
+    ],
+    "answer": 1,
+    "explanation": "Layers are additive history. Deleting a file does not remove it from the layer that added it. Use a secret mount that never becomes a layer.",
+    "id": 1432
+  },
+  {
+    "category": "Docker and Containers",
+    "difficulty": "Beginner",
+    "question": "A multi-stage Dockerfile is used so that:",
+    "options": [
+      "The compiler and package indexes stay in the runtime image",
+      "The runtime image contains the built artifact without the build toolchain",
+      "Every stage must run as root",
+      "Tags become immutable"
+    ],
+    "answer": 1,
+    "explanation": "The final stage copies the binary or the built app from an earlier stage. The compiler does not ship to production.",
+    "id": 1433
+  },
+  {
+    "category": "Docker and Containers",
+    "difficulty": "Intermediate",
+    "question": "Why set USER to a non-root uid in the image?",
+    "options": [
+      "Root is required for a process to listen on port 8080",
+      "A compromise of the process should not start as root in the container",
+      "USER disables networking",
+      "Non-root images cannot be scanned"
+    ],
+    "answer": 1,
+    "explanation": "The default is root. A non-root user limits what an attacker can change inside the container. Port 8080 does not need extra privilege.",
+    "id": 1434
+  },
+  {
+    "category": "Docker and Containers",
+    "difficulty": "Intermediate",
+    "question": "Production should deploy an image by digest because:",
+    "options": [
+      "A digest is shorter than a tag",
+      "A tag can be moved to a different image; a digest cannot",
+      "Digests skip the registry",
+      "Kubernetes rejects tags"
+    ],
+    "answer": 1,
+    "explanation": "latest, and any mutable tag, can change between the test run and the deploy. The digest identifies the bytes.",
+    "id": 1435
+  },
+  {
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "In Google Cloud, a VPC network and its subnets are scoped as:",
+    "options": [
+      "The VPC is regional and each subnet is global",
+      "The VPC is global and each subnet is regional",
+      "Both are zonal",
+      "Both must be recreated to add a region"
+    ],
+    "answer": 1,
+    "explanation": "You add a subnet in the region where the workloads run. You do not create a new VPC per region. Routes and firewall rules are part of that global network.",
+    "id": 1436
+  },
+  {
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A stateless HTTP API should start on Cloud Run rather than GKE when:",
+    "options": [
+      "You need DaemonSets, privileged nodes, and a custom CNI",
+      "You want request-based scaling, including scale to zero, without running a cluster",
+      "The process must hold a local disk across requests",
+      "You need to SSH to the node"
+    ],
+    "answer": 1,
+    "explanation": "Cloud Run runs a container for the request. GKE is the right tool when you need the cluster objects Cloud Run does not give you.",
+    "id": 1437
+  },
+  {
+    "category": "GCP",
+    "difficulty": "Intermediate",
+    "question": "A firewall rule targets a network tag, and a new instance is unreachable. What is a common miss?",
+    "options": [
+      "The VPC was global",
+      "The new instance was created without that tag",
+      "Subnets cannot be regional",
+      "Cloud Run replaced the VPC"
+    ],
+    "answer": 1,
+    "explanation": "Tags are easy to forget on the next instance template. Targeting the service account survives replacement better than a tag a human must remember.",
+    "id": 1438
+  },
+  {
+    "category": "GCP",
+    "difficulty": "Beginner",
+    "question": "Cloud NAT is for:",
+    "options": [
+      "Publishing a private VM on a public IP for inbound SSH",
+      "Outbound connections from instances that do not have public IPs",
+      "Replacing IAM",
+      "Global load balancing"
+    ],
+    "answer": 1,
+    "explanation": "NAT lets private instances reach the internet without accepting inbound connections. It is not an inbound path and it is not free of data charges.",
+    "id": 1439
+  },
+  {
+    "category": "Git and Source Control",
+    "difficulty": "Intermediate",
+    "question": "Force-pushing a rewritten main branch is dangerous because:",
+    "options": [
+      "Git cannot store more than one branch",
+      "Other people already have the old commits, and their work no longer applies cleanly",
+      "Signed commits become unsigned automatically",
+      "The remote deletes every tag"
+    ],
+    "answer": 1,
+    "explanation": "Rewriting shared history forces everyone else to reconcile. Protect the branch and require a merge or a rebase of the feature branch instead.",
+    "id": 1440
+  },
+  {
+    "category": "Git and Source Control",
+    "difficulty": "Beginner",
+    "question": "Branch protection on main should:",
+    "options": [
+      "Allow direct pushes so hotfixes skip review",
+      "Require a pull request and the required checks before merge",
+      "Disable history",
+      "Store cloud keys in the branch rules"
+    ],
+    "answer": 1,
+    "explanation": "The default branch is what you deploy. A direct push skips the review and the pipeline that were supposed to judge the change.",
+    "id": 1441
+  },
+  {
+    "category": "Git and Source Control",
+    "difficulty": "Intermediate",
+    "question": "A signed commit tells you that:",
+    "options": [
+      "The code passed security review",
+      "The commit was signed by the holder of a key, not that the change is safe",
+      "The file contents are encrypted",
+      "CI can be skipped"
+    ],
+    "answer": 1,
+    "explanation": "Signing is authorship of the commit object. It does not replace tests, review, or scanning. An attacker with the key can sign a bad commit.",
+    "id": 1442
+  },
+  {
+    "category": "GitHub Actions",
+    "difficulty": "Intermediate",
+    "question": "The GITHUB_TOKEN for a normal CI job should start from:",
+    "options": [
+      "Full write on every repository in the organization",
+      "The minimum permissions the job needs, often contents read",
+      "A personal access token of an admin, stored in the YAML",
+      "No token, and the job clones with a password in the URL"
+    ],
+    "answer": 1,
+    "explanation": "The token is a credential. A pull request that can change the workflow should not receive write access to the repository or packages by default.",
+    "id": 1443
+  },
+  {
+    "category": "GitHub Actions",
+    "difficulty": "Advanced",
+    "question": "A workflow on pull_request_target checks out the pull request branch and runs its scripts. What is exposed?",
+    "options": [
+      "Nothing; pull_request_target is read-only",
+      "The base repository's secrets, because that event runs in the base context with the PR's code",
+      "Only the PR author's fork secrets",
+      "The GitHub Pages cache"
+    ],
+    "answer": 1,
+    "explanation": "pull_request_target is privileged so it can comment or label. Running untrusted PR code in that job is remote code execution with your secrets.",
+    "id": 1444
+  },
+  {
+    "category": "GitHub Actions",
+    "difficulty": "Intermediate",
+    "question": "Two production deploys start from two merges a minute apart. What should the workflow set?",
+    "options": [
+      "A longer sleep",
+      "A concurrency group so only one deploy runs, and the other waits or is cancelled",
+      "pull_request_target",
+      "A self-hosted runner shared with untrusted forks"
+    ],
+    "answer": 1,
+    "explanation": "Overlapping deploys race. A concurrency group names the environment and keeps a single writer. Cancel in-progress is right for tests and often wrong for production, where you want a queue.",
+    "id": 1445
+  },
+  {
+    "category": "Helm",
+    "difficulty": "Beginner",
+    "question": "A Helm chart and its values relate as:",
+    "options": [
+      "Values are the templates, and the chart is one environment's overrides",
+      "The chart is the packaged templates; values override the defaults per environment",
+      "Values are stored in etcd only",
+      "A chart can contain only one container image digest"
+    ],
+    "answer": 1,
+    "explanation": "The same chart should install dev and prod. The difference is the values: replica count, host, and size. Do not fork the chart per environment.",
+    "id": 1446
+  },
+  {
+    "category": "Helm",
+    "difficulty": "Intermediate",
+    "question": "helm upgrade --atomic is used so that:",
+    "options": [
+      "The upgrade skips readiness checks",
+      "A failed upgrade rolls back to the last good release instead of staying failed",
+      "Hooks are deleted from the chart",
+      "Secrets are written into values.yaml"
+    ],
+    "answer": 1,
+    "explanation": "Without it, a bad upgrade can sit in a failed state and the next attempt is harder. Atomic means the release returns to the previous revision when the wait fails.",
+    "id": 1447
+  },
+  {
+    "category": "Helm",
+    "difficulty": "Beginner",
+    "question": "helm template is useful in review because it:",
+    "options": [
+      "Applies the chart to the production cluster",
+      "Renders the manifests locally without contacting the cluster",
+      "Rotates image pull secrets",
+      "Replaces kubectl diff"
+    ],
+    "answer": 1,
+    "explanation": "You can read the YAML the cluster would receive. It does not prove the cluster will accept it, but it catches a bad value before apply.",
+    "id": 1448
+  },
+  {
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "Builds should run on an agent rather than the controller because:",
+    "options": [
+      "The controller has more disk",
+      "A build on the controller can read the controller's secrets and files, and can take it down",
+      "Agents cannot run Docker",
+      "The controller cannot schedule"
+    ],
+    "answer": 1,
+    "explanation": "The controller's job is to schedule and record. Give it a small number of executors, ideally none for builds, and run untrusted pipeline code on agents.",
+    "id": 1449
+  },
+  {
+    "category": "Jenkins",
+    "difficulty": "Intermediate",
+    "question": "withCredentials binds a secret into a step. The step then echoes the environment. What happens?",
+    "options": [
+      "Jenkins masks every variable automatically, including ones you print on purpose",
+      "The secret can still land in the build log if the step prints it",
+      "The credential is deleted from the store",
+      "The agent refuses to start"
+    ],
+    "answer": 1,
+    "explanation": "Binding limits the window. It does not make a debug echo safe. Do not print the environment, and rotate anything that already appeared in a log.",
+    "id": 1450
+  },
+  {
+    "category": "Jenkins",
+    "difficulty": "Advanced",
+    "question": "Every team pipeline includes a shared library at @main. A library commit breaks all of them. What was wrong with the include?",
+    "options": [
+      "Shared libraries cannot be versioned",
+      "An unpinned main branch means every library change is immediately everyone's change",
+      "Agents cannot download libraries",
+      "Jenkinsfiles cannot call libraries"
+    ],
+    "answer": 1,
+    "explanation": "Pin a tag or a commit the same way you pin a dependency. Test the library in one job before you move the pin everyone else uses.",
+    "id": 1451
+  },
+  {
+    "category": "Kubernetes Fundamentals",
+    "difficulty": "Beginner",
+    "question": "You want three replicas kept running. Which object do you apply?",
+    "options": [
+      "A bare ReplicaSet you edit by hand after every change",
+      "A Deployment, which owns ReplicaSets and rolls them",
+      "A ConfigMap",
+      "A Namespace"
+    ],
+    "answer": 1,
+    "explanation": "The Deployment is the object you keep. It creates ReplicaSets for each revision so a rollback has something to return to.",
+    "id": 1452
+  },
+  {
+    "category": "Kubernetes Fundamentals",
+    "difficulty": "Beginner",
+    "question": "kubectl apply, compared with an imperative kubectl run you then forget, is preferred because:",
+    "options": [
+      "Apply only works on Pods",
+      "The file in Git stays the desired state, and the next apply converges to it",
+      "Imperative commands are stored in etcd as the source of truth",
+      "Apply skips admission"
+    ],
+    "answer": 1,
+    "explanation": "An imperative pod has no parent and no copy in review. Apply on a Deployment from Git is the thing the next person can see.",
+    "id": 1453
+  },
+  {
+    "category": "Kubernetes Fundamentals",
+    "difficulty": "Intermediate",
+    "question": "A Service selects pods by:",
+    "options": [
+      "The pod name, which changes on every restart",
+      "Labels, so a replaced pod is included when it carries the same labels",
+      "The node hostname only",
+      "The container image digest"
+    ],
+    "answer": 1,
+    "explanation": "Names are ephemeral. Labels are the contract. A selector that does not match the pod template is a Service with no endpoints.",
+    "id": 1454
+  },
+  {
+    "category": "Kubernetes Networking",
+    "difficulty": "Beginner",
+    "question": "ClusterIP, NodePort, and LoadBalancer differ as:",
+    "options": [
+      "ClusterIP is public, NodePort is in-cluster only, LoadBalancer is a label",
+      "ClusterIP is reachable inside the cluster, NodePort also opens a node port, LoadBalancer asks the cloud for an external address",
+      "They all allocate a public IP",
+      "None of them use endpoints"
+    ],
+    "answer": 1,
+    "explanation": "Start with ClusterIP. Add NodePort or LoadBalancer only when something outside the cluster must connect. Internal traffic does not need a public address.",
+    "id": 1455
+  },
+  {
+    "category": "Kubernetes Networking",
+    "difficulty": "Intermediate",
+    "question": "A NetworkPolicy selects a pod and lists no ingress rules. Ingress to that pod is:",
+    "options": [
+      "Still allowed, because policies only add allows",
+      "Denied, because a selecting policy isolates the pod for that direction",
+      "Allowed from the same namespace only by default, even with the policy",
+      "Converted into a host port"
+    ],
+    "answer": 1,
+    "explanation": "The moment a policy selects the pod, the default for the covered direction becomes deny. You then add the allows you can name.",
+    "id": 1456
+  },
+  {
+    "category": "Kubernetes Networking",
+    "difficulty": "Intermediate",
+    "question": "A Service has an IP and no process listens on that IP on any node. How does traffic reach a pod?",
+    "options": [
+      "It does not; the IP is broken",
+      "kube-proxy or the dataplane forwards the Service address to ready endpoints",
+      "CoreDNS connects the TCP session",
+      "The Ingress controller is required for every ClusterIP"
+    ],
+    "answer": 1,
+    "explanation": "The Service IP is virtual. The node rewrites the connection toward a ready pod. If there are no ready endpoints, the client gets a refusal or a timeout from the proxy.",
+    "id": 1457
+  },
+  {
+    "category": "Kubernetes Operations",
+    "difficulty": "Intermediate",
+    "question": "A PodDisruptionBudget of minAvailable: 2 on a three-pod Deployment means:",
+    "options": [
+      "The cluster will never move pods",
+      "Voluntary disruptions must leave at least two pods available",
+      "The Deployment cannot scale past two",
+      "Nodes ignore memory pressure"
+    ],
+    "answer": 1,
+    "explanation": "Drains and evictions that are voluntary wait. A node crash is not voluntary and the budget does not stop it. A budget of minAvailable equal to replicas can block a drain forever.",
+    "id": 1458
+  },
+  {
+    "category": "Kubernetes Operations",
+    "difficulty": "Intermediate",
+    "question": "HPA and VPA differ because:",
+    "options": [
+      "HPA changes the size of one pod's CPU limit only, and VPA changes the replica count",
+      "HPA changes the replica count from a metric; VPA recommends or applies new requests",
+      "They both edit the Service selector",
+      "VPA replaces the need for requests"
+    ],
+    "answer": 1,
+    "explanation": "More pods versus bigger pods. Running both blindly on the same resource fights. Pick the one that matches how the app scales.",
+    "id": 1459
+  },
+  {
+    "category": "Kubernetes Operations",
+    "difficulty": "Beginner",
+    "question": "The scheduler decides a pod fits on a node by looking at:",
+    "options": [
+      "The node's current idle CPU only",
+      "The pod's requests compared with what is already requested on the node",
+      "The container's last OOM kill",
+      "The image size alone"
+    ],
+    "answer": 1,
+    "explanation": "Usage can be low while requests have already reserved the node. A pod with no requests is easy to schedule and easy to evict under pressure.",
+    "id": 1460
+  },
+  {
+    "category": "Kubernetes Security",
+    "difficulty": "Intermediate",
+    "question": "runAsNonRoot: true on a pod that still uses an image whose USER is root causes:",
+    "options": [
+      "The pod to run as root anyway",
+      "The pod to fail admission or fail to start, which is the point",
+      "The Service to lose endpoints only",
+      "Kubernetes to rewrite the image"
+    ],
+    "answer": 1,
+    "explanation": "The setting refuses a root process. Fix the image USER. Do not delete the setting to make the deploy green.",
+    "id": 1461
+  },
+  {
+    "category": "Kubernetes Security",
+    "difficulty": "Intermediate",
+    "question": "A Secret stored in etcd without encryption at rest is:",
+    "options": [
+      "Encrypted because the manifest uses base64",
+      "Base64-encoded and readable by anyone who can read etcd or the API",
+      "Visible only to the kubelet",
+      "Rotated hourly by default"
+    ],
+    "answer": 1,
+    "explanation": "Enable encryption at rest and restrict get on secrets. Base64 is decoding, not a key.",
+    "id": 1462
+  },
+  {
+    "category": "Kubernetes Security",
+    "difficulty": "Beginner",
+    "question": "A pod that never calls the Kubernetes API should:",
+    "options": [
+      "Mount the default service account token so exec works",
+      "Disable automount of the service account token",
+      "Use the cluster-admin role in case it needs the API later",
+      "Share one token across the namespace"
+    ],
+    "answer": 1,
+    "explanation": "The mounted token is a credential. If the process does not talk to the API, do not give it a token that can.",
+    "id": 1463
+  },
+  {
+    "category": "Kubernetes Storage",
+    "difficulty": "Beginner",
+    "question": "A PersistentVolumeClaim, a PersistentVolume, and a StorageClass relate as:",
+    "options": [
+      "The claim is the disk, and the class is the pod",
+      "The claim asks for storage, the class provisions a volume, and the volume is the disk binding",
+      "The volume is a label on the Service",
+      "Claims are node-local only"
+    ],
+    "answer": 1,
+    "explanation": "You usually write the claim and name a class. The provisioner creates the volume. A class name that matches nothing leaves the claim Pending.",
+    "id": 1464
+  },
+  {
+    "category": "Kubernetes Storage",
+    "difficulty": "Beginner",
+    "question": "emptyDir versus a PersistentVolumeClaim:",
+    "options": [
+      "emptyDir survives node replacement",
+      "emptyDir is deleted when the pod is removed from the node; a claim can be mounted by the next pod",
+      "A claim is always memory",
+      "emptyDir is encrypted by default"
+    ],
+    "answer": 1,
+    "explanation": "Use emptyDir for scratch. Use a claim for data that must outlive the container. A node loss still takes a volume that was only on that node's disk.",
+    "id": 1465
+  },
+  {
+    "category": "Kubernetes Storage",
+    "difficulty": "Intermediate",
+    "question": "A ReadWriteOnce volume is attached to a pod on node A. A second pod on node B tries to mount it writable. What happens?",
+    "options": [
+      "Both pods write safely",
+      "The second mount waits or fails, because the volume is only writable from one node",
+      "Kubernetes switches it to ReadWriteMany",
+      "The claim is deleted"
+    ],
+    "answer": 1,
+    "explanation": "ReadWriteOnce is one node. Two replicas that both need the disk require a volume that supports that, or they need separate claims. Do not assume the cloud disk is shared.",
+    "id": 1466
+  },
+  {
+    "category": "Kubernetes Troubleshooting",
+    "difficulty": "Beginner",
+    "question": "ImagePullBackOff and CrashLoopBackOff mean:",
+    "options": [
+      "The same thing: the process exited",
+      "ImagePullBackOff could not fetch the image; CrashLoopBackOff started the container and it exited",
+      "Both mean the node is NotReady",
+      "Both mean a failed probe and a running process"
+    ],
+    "answer": 1,
+    "explanation": "Look at the event. A pull error is the registry, the name, or the pull secret. A crash is the process. The fixes are different.",
+    "id": 1467
+  },
+  {
+    "category": "Kubernetes Troubleshooting",
+    "difficulty": "Intermediate",
+    "question": "The current container is waiting and you need the stack trace from the crash that just happened. Which command?",
+    "options": [
+      "kubectl logs with no flags, which shows the waiting container",
+      "kubectl logs --previous on that container",
+      "kubectl describe node, which prints container stdout",
+      "kubectl get endpoints"
+    ],
+    "answer": 1,
+    "explanation": "The waiting container has no logs yet. --previous is the terminated one. describe shows the exit code and the last message if the log itself is gone.",
+    "id": 1468
+  },
+  {
+    "category": "Kubernetes Troubleshooting",
+    "difficulty": "Intermediate",
+    "question": "A pod is Pending with Insufficient cpu. The node graphs show low CPU use. Why?",
+    "options": [
+      "Graphs are the scheduler's input",
+      "Other pods have already reserved the CPU through their requests",
+      "Pending means the image is pulling",
+      "CPU is scheduled from limits only"
+    ],
+    "answer": 1,
+    "explanation": "The scheduler adds requests. A node can look idle and still have no unreserved CPU. Raise capacity, lower requests, or find the pods holding the reservation.",
+    "id": 1469
+  },
+  {
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "set -euo pipefail in a shell script is there so that:",
+    "options": [
+      "The script ignores failed commands",
+      "A failed command, an unset variable, or a failed command in a pipeline stops the script",
+      "Pipes always return the first command's status",
+      "sudo is implied"
+    ],
+    "answer": 1,
+    "explanation": "Without it, a failed compile can still be followed by a successful deploy step. The shell's default is to keep going. The option changes that default.",
+    "id": 1470
+  },
+  {
+    "category": "Linux",
+    "difficulty": "Beginner",
+    "question": "systemctl enable and systemctl start differ because:",
+    "options": [
+      "enable runs the service now and start only affects the next boot",
+      "enable wires the next boot; start runs it now",
+      "They are aliases",
+      "start disables the unit"
+    ],
+    "answer": 1,
+    "explanation": "A service can be enabled and stopped, or started and not enabled. enable --now does both. Check is-enabled and is-active separately.",
+    "id": 1471
+  },
+  {
+    "category": "Linux",
+    "difficulty": "Intermediate",
+    "question": "df shows free megabytes and creating a file still fails. What do you check next?",
+    "options": [
+      "Only the default route",
+      "Inodes with df -i",
+      "The TLS certificate",
+      "The crontab of root only"
+    ],
+    "answer": 1,
+    "explanation": "A filesystem can have free bytes and zero free inodes. The error looks like a full disk. df -i shows the other limit.",
+    "id": 1472
+  },
+  {
+    "category": "Linux",
+    "difficulty": "Advanced",
+    "question": "You deleted a large log and the disk did not free the space. Why?",
+    "options": [
+      "rm never unlinks files",
+      "A process still has the file open, so the blocks remain until it exits or closes the handle",
+      "The journal recreates every deleted file",
+      "inodes do not hold data"
+    ],
+    "answer": 1,
+    "explanation": "The directory entry is gone and du cannot see the file. lsof shows the open path marked deleted. Truncate the handle or restart the holder.",
+    "id": 1473
+  },
+  {
+    "category": "Maven",
+    "difficulty": "Beginner",
+    "question": "A SNAPSHOT dependency differs from a release version because:",
+    "options": [
+      "SNAPSHOT versions are immutable",
+      "A SNAPSHOT can be replaced; a release version must stay the bytes you already resolved",
+      "Releases are stored only on the laptop",
+      "Maven refuses release versions"
+    ],
+    "answer": 1,
+    "explanation": "Snapshots move. Pin a release when you need today's build to match next month. Do not deploy a snapshot to production and call it reproducible.",
+    "id": 1474
+  },
+  {
+    "category": "Maven",
+    "difficulty": "Intermediate",
+    "question": "The developer's ~/.m2 directory is not a substitute for Nexus or Artifactory because:",
+    "options": [
+      "Maven cannot read a local cache",
+      "The cache is one laptop; the team and CI need a shared, access-controlled store",
+      "Local caches are replicated to production automatically",
+      "Artifactory cannot proxy Maven Central"
+    ],
+    "answer": 1,
+    "explanation": "CI should resolve through the shared repository. A green laptop that already cached a jar does not mean the agent can build.",
+    "id": 1475
+  },
+  {
+    "category": "Maven",
+    "difficulty": "Advanced",
+    "question": "Two dependencies pull different versions of the same library. Maven's nearest-wins mediation means:",
+    "options": [
+      "The highest version always wins",
+      "The version closest to the project in the tree wins, which may be the older one",
+      "The build fails closed always",
+      "Versions are merged field by field"
+    ],
+    "answer": 1,
+    "explanation": "Nearest-wins surprises people who expect the newest. Declare the version you intend on the project, and look at the tree when the runtime shows a class you did not expect.",
+    "id": 1476
+  },
+  {
+    "category": "Networking",
+    "difficulty": "Beginner",
+    "question": "ARP is used to:",
+    "options": [
+      "Resolve a hostname to an IP through a recursive resolver",
+      "Resolve an IPv4 address to a MAC address on the local link",
+      "Choose a BGP path",
+      "Terminate TLS"
+    ],
+    "answer": 1,
+    "explanation": "ARP is layer 2. DNS is the name. If ARP fails, the host is on the right IP network and still cannot frame the packet to the neighbor.",
+    "id": 1477
+  },
+  {
+    "category": "Networking",
+    "difficulty": "Beginner",
+    "question": "A switch and a router differ because:",
+    "options": [
+      "A switch routes between IP networks and a router only forwards frames",
+      "A switch forwards frames inside a local segment; a router forwards packets between networks",
+      "They implement the same table",
+      "Routers do not decrement TTL"
+    ],
+    "answer": 1,
+    "explanation": "Same VLAN or subnet is switching. A different network is routing, which needs a gateway. A cloud subnet is a router plus a filter, not a cable.",
+    "id": 1478
+  },
+  {
+    "category": "Networking",
+    "difficulty": "Intermediate",
+    "question": "Two TCP connections are distinguished by:",
+    "options": [
+      "The destination port alone",
+      "The protocol and the two addresses and two ports",
+      "The MAC address of the client only",
+      "The TLS certificate serial"
+    ],
+    "answer": 1,
+    "explanation": "That five-tuple is the connection. NAT rewrites parts of it and must remember the mapping. A load balancer hashes it to pick a backend.",
+    "id": 1479
+  },
+  {
+    "category": "Networking",
+    "difficulty": "Advanced",
+    "question": "Clients inside a VPC reach a managed service through its public DNS name and the traffic hairpins through NAT. What should the name resolve to?",
+    "options": [
+      "The public address, always",
+      "The private endpoint address, via a private DNS zone",
+      "127.0.0.1",
+      "The VPC CIDR network address"
+    ],
+    "answer": 1,
+    "explanation": "The private endpoint does nothing if DNS still hands out the public address. Private DNS keeps the traffic on the private interface and off the NAT bill.",
+    "id": 1480
+  },
+  {
+    "category": "Nexus and Artifactory",
+    "difficulty": "Beginner",
+    "question": "A proxy repository, a hosted repository, and a group repository are:",
+    "options": [
+      "Proxy stores your releases, hosted caches the internet, group deletes both",
+      "Proxy caches an upstream, hosted stores your artifacts, and a group presents both to the client",
+      "Three names for one repository",
+      "Only useful for Docker, not Maven"
+    ],
+    "answer": 1,
+    "explanation": "Clients should depend on the group. You control what the proxy is allowed to cache, and you publish releases only to the hosted repository.",
+    "id": 1481
+  },
+  {
+    "category": "Nexus and Artifactory",
+    "difficulty": "Intermediate",
+    "question": "A release repository should refuse a second upload of version 1.4.2 because:",
+    "options": [
+      "Disk is cheaper if versions are overwritten",
+      "That version is already in production and overwriting it changes bytes other builds trust",
+      "Maven cannot read the first upload",
+      "Proxies require snapshots"
+    ],
+    "answer": 1,
+    "explanation": "Immutable releases are how an old build stays reproducible. If the bits were wrong, publish 1.4.3. Do not reuse the number.",
+    "id": 1482
+  },
+  {
+    "category": "Nexus and Artifactory",
+    "difficulty": "Intermediate",
+    "question": "CI is configured to download dependencies directly from the public internet. What do you lose?",
+    "options": [
+      "Nothing important",
+      "An outage of the upstream, or a removed package, breaks you, and you have no local copy you control",
+      "The ability to use versions",
+      "TLS"
+    ],
+    "answer": 1,
+    "explanation": "A proxy or cache you operate keeps the artifacts you already used. Pin versions, and do not let a production build depend on a public mirror being up.",
+    "id": 1483
+  },
+  {
+    "category": "Observability",
+    "difficulty": "Beginner",
+    "question": "RED and USE are:",
+    "options": [
+      "Two names for CPU percentage",
+      "RED is rate, errors, and duration for a service; USE is utilization, saturation, and errors for a resource",
+      "Log formats",
+      "Alert severities"
+    ],
+    "answer": 1,
+    "explanation": "RED tells you whether users are succeeding and how long it took. USE tells you whether a resource is busy or queued. A service can be RED-red while a node is USE-fine, and the reverse.",
+    "id": 1484
+  },
+  {
+    "category": "Observability",
+    "difficulty": "Advanced",
+    "question": "A Prometheus metric adds a label for every user id. What breaks?",
+    "options": [
+      "Nothing; labels are free",
+      "Cardinality: one time series per user exhausts memory and slows queries",
+      "Only the log disk",
+      "Traces stop, metrics do not"
+    ],
+    "answer": 1,
+    "explanation": "Labels must be bounded: service, status code, route group. High-cardinality values belong in logs or traces, not in a label.",
+    "id": 1485
+  },
+  {
+    "category": "Observability",
+    "difficulty": "Intermediate",
+    "question": "A trace shows a slow request and you want the matching log line. What must the log contain?",
+    "options": [
+      "The node hostname only",
+      "The trace id, printed on the same line as the event",
+      "A stack trace of every successful request",
+      "The Prometheus scrape interval"
+    ],
+    "answer": 1,
+    "explanation": "Metrics say something is slow. The trace says which request. The log line with that id says what the service did. Without the id, you grep timestamps and hope.",
+    "id": 1486
+  },
+  {
+    "category": "Production Scenarios",
+    "difficulty": "Advanced",
+    "question": "A canary takes 5 percent of traffic and the global error rate barely moves. How do you judge it?",
+    "options": [
+      "Ship it, because the global graph is flat",
+      "Split errors and latency by version so the canary is visible on its own",
+      "Raise the canary to 100 percent immediately",
+      "Disable health checks"
+    ],
+    "answer": 1,
+    "explanation": "Five percent of a bad error rate hides inside the other ninety-five. The decision needs the canary's own series, and a rule for when to stop.",
+    "id": 1487
+  },
+  {
+    "category": "Production Scenarios",
+    "difficulty": "Intermediate",
+    "question": "A certificate expires tonight and last week's renewal job failed. What is the order?",
+    "options": [
+      "Wait for the next scheduled run",
+      "Renew and reload the serving process now, then fix the job so it cannot fail quietly again",
+      "Lower DNS TTL and do nothing else",
+      "Delete the load balancer"
+    ],
+    "answer": 1,
+    "explanation": "Tonight is the incident. The failed job is why you have an incident. Reloading matters: a new file on disk is not a new certificate in the process.",
+    "id": 1488
+  },
+  {
+    "category": "Production Scenarios",
+    "difficulty": "Advanced",
+    "question": "One region times out and the other region is healthy. What do you check before a global rollback?",
+    "options": [
+      "The application code only, because regions share one binary",
+      "That region's dependencies: data store, NAT, DNS, and capacity",
+      "The laptop of the person who deployed",
+      "Whether ping works, and stop there"
+    ],
+    "answer": 1,
+    "explanation": "The same build can be fine where its dependency is fine. Confirm the failing region's path before you roll back a release that is serving the healthy region.",
+    "id": 1489
+  },
+  {
+    "category": "Production Scenarios",
+    "difficulty": "Intermediate",
+    "question": "A node disk fills with pulled images and kubelet starts evicting pods. What is the durable fix?",
+    "options": [
+      "A larger disk only, with no eviction threshold and no image GC",
+      "Free space now, then cap image growth and alert before the eviction threshold",
+      "Delete the Deployments",
+      "Turn off the container runtime"
+    ],
+    "answer": 1,
+    "explanation": "Deleting images recovers the node. Without garbage collection and a disk alert, the next pull fills it again and eviction is the symptom you see.",
+    "id": 1490
+  },
+  {
+    "category": "Production Troubleshooting",
+    "difficulty": "Intermediate",
+    "question": "HTTP 500s start in the same minute as a deploy. What do you compare first?",
+    "options": [
+      "A week of CPU graphs with no release marker",
+      "The new revision against the previous one: image, config, and the error in its logs",
+      "The office VPN",
+      "BGP announcements for the whole internet"
+    ],
+    "answer": 1,
+    "explanation": "Correlation with the deploy is the hypothesis. Read the new pod's logs and be ready to roll back. A CPU graph can wait until the rollback is not the obvious move.",
+    "id": 1491
+  },
+  {
+    "category": "Production Troubleshooting",
+    "difficulty": "Intermediate",
+    "question": "Latency climbs and the error rate stays flat. A crash loop is unlikely. What is more likely?",
+    "options": [
+      "DNS NXDOMAIN for every request",
+      "Saturation: a dependency, a lock, or a full queue making successful requests wait",
+      "A certificate name mismatch, which would fail the handshake",
+      "A deleted Deployment"
+    ],
+    "answer": 1,
+    "explanation": "Errors flat means clients are getting answers, slowly. Look at the slow dependency and at queue depth. A crash would remove capacity and usually raise errors too.",
+    "id": 1492
+  },
+  {
+    "category": "Production Troubleshooting",
+    "difficulty": "Advanced",
+    "question": "Only one Availability Zone is failing health checks. The other zones serve normally. Where do you look?",
+    "options": [
+      "A global code bug that would have hit every zone",
+      "That zone's nodes, its NAT or routes, and any data store that lived only there",
+      "The Git tag",
+      "The TLS cipher list shared by all zones"
+    ],
+    "answer": 1,
+    "explanation": "A single zone points at zone-local infrastructure. A bad deploy of a shared image would show up more widely. Do not drain the healthy zones while you look.",
+    "id": 1493
+  },
+  {
+    "category": "Python",
+    "difficulty": "Beginner",
+    "question": "A CI job installs Python packages into the system interpreter. Why is a virtualenv better?",
+    "options": [
+      "It makes the script run as root",
+      "The job's dependencies stay in one environment and do not change the next job's interpreter",
+      "It disables timeouts",
+      "It replaces the exit code"
+    ],
+    "answer": 1,
+    "explanation": "Agents are reused. A system-wide install leaks packages between jobs. A virtualenv, with pinned versions, is the environment the tests actually ran in.",
+    "id": 1494
+  },
+  {
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "A script builds a filesystem path by concatenating strings with a slash. It passes on Linux and fails on a Windows agent. Why?",
+    "options": [
+      "Python cannot read files",
+      "The separator and the encoding are platform-specific; pathlib and an explicit utf-8 encoding avoid that",
+      "Windows cannot run Python",
+      "Slash is illegal in URLs"
+    ],
+    "answer": 1,
+    "explanation": "Path and encoding='utf-8' keep the script honest on both agents. A hard-coded slash is a laptop assumption.",
+    "id": 1495
+  },
+  {
+    "category": "Python",
+    "difficulty": "Intermediate",
+    "question": "A check finds a secret. The useful log line contains:",
+    "options": [
+      "The secret value, so reviewers can confirm it",
+      "The file path and the rule name, not the value, and the process exits non-zero",
+      "The entire environment",
+      "Nothing, and the exit code is 0"
+    ],
+    "answer": 1,
+    "explanation": "The value in the log is a second copy of the leak. The path is enough to fix it. Exit 0 would turn the finding into a green build.",
+    "id": 1496
+  },
+  {
+    "category": "Python",
+    "difficulty": "Beginner",
+    "question": "A script prints ERROR and then exits 0. In a pipeline this is:",
+    "options": [
+      "A failed job",
+      "A successful job, because the exit code is the contract",
+      "A syntax error",
+      "Ignored on Linux only"
+    ],
+    "answer": 1,
+    "explanation": "CI looks at the status, not at the word ERROR. Known failures should exit non-zero. An unexpected traceback also fails the step, which is what you want.",
+    "id": 1497
+  },
+  {
+    "category": "Terraform",
+    "difficulty": "Intermediate",
+    "question": "Two applies run at the same time against one state and one overwrites the other. What was missing?",
+    "options": [
+      "A local laptop with the state file on disk",
+      "A remote state lock so the second apply waits or fails",
+      "A longer plan",
+      "More providers"
+    ],
+    "answer": 1,
+    "explanation": "Remote state without a lock is shared and unsafe. The lock is what makes the second writer stop. Force-unlock is for a dead lock, not for impatience.",
+    "id": 1498
+  },
+  {
+    "category": "Terraform",
+    "difficulty": "Advanced",
+    "question": "Renaming a resource in configuration makes the next plan destroy it and create a new one. How do you keep the real object?",
+    "options": [
+      "Apply quickly so the destroy is brief",
+      "Move the state address to the new name so Terraform sees the same object",
+      "Delete the state file",
+      "Taint the resource"
+    ],
+    "answer": 1,
+    "explanation": "The name in the file is the state address. A moved block or state mv tells Terraform the object was renamed. Apply of a destroy plan is how databases disappear.",
+    "id": 1499
+  },
+  {
+    "category": "Terraform",
+    "difficulty": "Beginner",
+    "question": "terraform plan is required before apply because:",
+    "options": [
+      "Apply refuses to run without a human reading the actions",
+      "The plan is the list of creates, changes, and destroys you are about to approve",
+      "Plan writes the changes immediately",
+      "Plan replaces state"
+    ],
+    "answer": 1,
+    "explanation": "Apply does what the plan says, including destroys. Read it. In CI, save the plan file and apply that file so the applied actions are the reviewed ones.",
+    "id": 1500
   }
 ]

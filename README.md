@@ -51,7 +51,8 @@ link back to the repos above: [CI/CD](knowledge/ci-cd/README.md),
 [DevSecOps](knowledge/devsecops/README.md),
 [Authentication & Authorization](knowledge/auth/README.md),
 [Observability](knowledge/observability/README.md),
-[Linux](knowledge/linux/README.md), and
+[Linux](knowledge/linux/README.md),
+[Networking](knowledge/networking/README.md), and
 [Python](knowledge/python/README.md).
 
 A small Python tool in this repo, [release-preflight](projects/release-preflight/README.md),
@@ -64,7 +65,7 @@ settings before a deploy.
 (practice and timed modes, rotating attempts), moved here from
 `bitwise-devops-kubernates` so it can be shared across all the linked
 example repos. Categories include Kubernetes, CI/CD, Docker, Terraform,
-AWS, GCP, Ansible, Jenkins, observability, Linux, Python, DevSecOps, and authentication.
+AWS, GCP, Ansible, Jenkins, observability, Linux, Networking, Python, DevSecOps, and authentication.
 
 - `quiz/interview.html`, `interview.css`, `interview.js` – the quiz app.
 - `quiz/interview-questions.json` – the question bank.

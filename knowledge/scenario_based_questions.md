@@ -2770,3 +2770,195 @@ rollback/recovery plan.
 ## 452. How would you reduce cloud cost by 40% without impacting performance? Where do you start?
 
 **Answer:** I start from the bill, largest service first, and I compare it with last month. The usual 40 percent is not one heroic rewrite. It is unattached volumes, oversized instances, dev running all night, NAT traffic that should have been a VPC endpoint, log retention, and idle load balancers. I turn on a budget alert before I cut. I rightsize from metrics, not from the instance name. I do not remove a second Availability Zone to hit the number. That saves money by spending the outage later.
+
+## 453. A capture on the server shows a SYN arriving and no SYN-ACK leaving. What do you check before you blame the client?
+
+**Answer:** The packet reached this host, so DNS and the path in are not the current fault. I check whether anything is listening on that port and address, with ss, and whether the host firewall dropped the reply. A process bound to 127.0.0.1 will not answer a SYN that arrived on the pod or instance address. I also check the return route: the SYN-ACK can be generated and then sent somewhere the capture on this interface will not show as a successful handshake. I do not restart the application until I know it was not listening.
+
+## 454. Small health checks succeed through a VPN, and uploads over a few kilobytes hang. How do you prove path MTU?
+
+**Answer:** I compare a small TCP payload with one that is larger than the tunnel can carry. If the small one completes and the large one stalls with no error, I suspect a hop that cannot forward the packet and also does not send fragmentation-needed. I check the tunnel MTU and whether TCP MSS clamping is on. I do not start by rewriting the application timeout. A longer timeout only hides a black hole. The fix is a smaller MSS or MTU on the tunnel, then a repeat of the large upload.
+
+## 455. Two accounts both built 10.0.0.0/16 and the business wants them peered this week. What do you say?
+
+**Answer:** I say the peering will not carry a route for a prefix that exists on both sides. Routing cannot tell the two networks apart. NAT in front of one side is a workaround with its own breakage, not a design I want under a deadline. The real fix is to renumber one account onto a range from the plan we should have written first. I will not invent overlapping routes and call the tunnel up. I show them the address map and the smallest renumber that unblocks the peer.
+
+## 456. VPC A is peered to B and B is peered to C. A still cannot reach C. Is the peering broken?
+
+**Answer:** The peerings can be healthy and A still cannot reach C, because cloud peering is not transitive. A talks to B, B talks to C, and nobody forwarded A's packets onward. I either peer A to C directly or I put a transit network in the middle and accept the extra hop and cost. I also check the routes and the firewalls on the pair I do create. A green peering status between A and B is the wrong screen once the destination is C.
+
+## 457. The site-to-site VPN says phase 1 and phase 2 are up, and the database port still times out. Where do you look?
+
+**Answer:** The encryption negotiated. That does not mean a route exists for the inner prefixes, or that a firewall on either side allows those inner packets. I check both route tables for the remote CIDR, then the security group or firewall for the real port, then a TCP connect from a host on one side. I do not keep recreating the tunnel. A green status page is the start of the check, not the end.
+
+## 458. Browsers show a certificate name mismatch right after a new hostname starts pointing at the old listener. What did not move with DNS?
+
+**Answer:** DNS now sends people to a listener whose certificate does not list the new name. The subject alternative name is what the client checks. I add the name to the certificate, or attach the certificate that already has it, and I reload the process that presents it. I also check that the load balancer, not only the backend, is the hop the browser talks to. Pointing DNS first and the certificate second is this outage.
+
+## 459. The renewed certificate is on disk and clients still see the expired one. What is left to do?
+
+**Answer:** The process loaded the old file and nobody told it to read the new one. I reload or restart the listener that terminates TLS, and I confirm the served certificate with a client against that address, not by reading the file. Then I fix the renewal so the reload is part of the job, and I alert weeks before expiry. A successful write to disk is not a completed renewal.
+
+## 460. The load balancer health check returns 200 while users see database errors. How do you fix the check without emptying the fleet?
+
+**Answer:** A check that cannot fail keeps broken instances in rotation. A check that requires the database marks every instance down together when the database blips, which is worse. I make the load balancer check local process health, and I alert on the database separately. If I do deepen the check, I do it on one instance first and I watch the healthy-host count. I never ship a handler that returns 200 unconditionally to make a dashboard green.
+
+## 461. A rolling deploy produces a burst of 502s for about half a minute. What step was skipped?
+
+**Answer:** The process was stopped while it still had requests. Connection draining, or a deregistration delay, stops new work and lets the in-flight requests finish. The readiness probe must fail before the process exits, so the load balancer removes the instance first. I also check the termination grace period against how long a request actually takes. Killing faster than that is the 502.
+
+## 462. HTTP/3 works from a home network and fails on the office network. What is the office path doing differently?
+
+**Answer:** HTTP/3 runs on QUIC, which is UDP on port 443. The office allows TCP 443 and drops UDP. Home does not. Browsers that fall back survive. A client that does not fall back fails. I test UDP 443 as its own path instead of assuming the TCP check covers it. If the office will not allow UDP, I keep the TCP fallback and I say so, rather than debugging the application.
+
+## 463. A more specific BGP prefix was announced next to the one you meant. What traffic moves?
+
+**Answer:** Longest prefix wins between networks the same way it wins in a host route table. A /25 announced beside a /24 attracts that half of the range, including traffic you did not mean to receive. I withdraw the specific prefix and I watch from more than one provider, because withdrawal is not instant everywhere. I also check that RPKI still matches what we are allowed to originate. I do not wait for DNS TTL. This is routing, not naming.
+
+## 464. An anycast site is failing and users near it still arrive there. What is still being announced?
+
+**Answer:** Anycast delivers the client to a nearby announcement of the same address. If the dead site is still announced, routing keeps handing it users. I withdraw that site's announcement, or I fail its health check in the system that withdraws for me. I do not expect the client to stick to a healthy site it visited earlier. Sessions are not pinned unless we built that on purpose.
+
+## 465. CLOSE_WAIT sockets climb on one API after a release. Is the firewall the cause?
+
+**Answer:** No. CLOSE_WAIT means the peer closed and this process has not closed its side. That is the application, usually a connection left open after the response. A firewall drop looks like a timeout or a SYN with no answer, not like a socket sitting in CLOSE_WAIT. I look at the release diff for a missed close, and I watch the count fall after the fix. Raising the file-descriptor limit only postpones the crash.
+
+## 466. A stateful security group allows outbound 443, and a new stateless network ACL sits in front. Replies never come back. Why?
+
+**Answer:** The security group tracks the connection and allows the reply. The stateless ACL judges every packet alone, so the return traffic needs its own rule, including the ephemeral ports. I add that return rule, or I stop putting a stateless list in front of a flow I already allowed statefully. The symptom is a timeout, which people misread as the remote service being down.
+
+## 467. A container listens on 127.0.0.1 and the Service has endpoints, but nobody outside the container can connect. What do you change?
+
+**Answer:** I change the bind address. 127.0.0.1 is the container's loopback, and the Service forwards to the pod IP, which is a different interface. Endpoints can exist because the process is running, and the connection still fails. I bind to all interfaces or to the pod IP, I keep the port aligned with the Service targetPort, and I confirm with a connect to the pod IP, not to localhost inside an exec session.
+
+## 468. dig on a laptop and dig in a pod return different addresses for the same name. What is going on?
+
+**Answer:** They are not using the same resolver. The laptop uses corporate or public DNS. The pod uses CoreDNS and the search list in its resolv.conf, and ndots may try several suffixes before the name I think I asked. Split horizon can also be intentional: a private address inside the VPC and a public address outside. I compare the server that answered, not just the address. I fix the zone the pod actually queries.
+
+## 469. You lowered the DNS TTL at the moment of cutover, and some clients still use the old address an hour later. What kept the old answer?
+
+**Answer:** Caches that already stored the previous TTL. Lowering the TTL does not expire an answer a resolver fetched this morning under the old, long TTL. The lower value applies to lookups after the change. I lower the TTL a day or more before a move, I check the authoritative server and a public resolver separately, and I do not call a stale cache a failed failover.
+
+## 470. A layer-4 load balancer cannot send /api and /static to different pools. What do you put in front instead?
+
+**Answer:** A layer-7 proxy that can read the HTTP path. Layer 4 only has the address and the port. If TLS is end-to-end, the balancer cannot see the path unless it terminates TLS or the protocol exposes the route another way. I terminate TLS at the proxy, route on the path, and I keep the certificate and the health checks on that proxy. I do not keep reconfiguring the layer-4 listener and hoping the URL will leak.
+
+## 471. traceroute prints stars from hop 4, and the service is healthy. How do you explain the stars?
+
+**Answer:** A star means that hop did not answer the probe. Many routers refuse traceroute and still forward traffic. It is not proof the hop is down, and the probes are often not even the TCP connection the user cares about. I confirm with a connect to the real port. I use traceroute to see where replies stop, and I stop treating a silent hop as an outage when the service is answering.
+
+## 472. Private subnets reach S3 through NAT, and that is the expensive line on the bill. What path do you add?
+
+**Answer:** A gateway endpoint, or the provider's private endpoint, so S3 traffic leaves the subnet without the NAT. I point the route at the endpoint and I check that DNS still resolves to the service in a way that matches that route. I do not remove NAT until I know what else uses it, such as package mirrors and external APIs. The endpoint removes the S3 bytes from the NAT. It does not replace egress for everything.
+
+## 473. Cross-zone load balancing is off, and one Availability Zone becomes unhealthy. What do users pinned to that zone see?
+
+**Answer:** They stay on the unhealthy zone, because the balancer was told not to send them elsewhere. The other zone can be idle while this one errors. I turn cross-zone on when I would rather pay the data charge than drop a zone, or I accept the failure domain and I make sure clients are not stuck. I watch healthy hosts per zone, not one global count that hides an empty zone.
+
+## 474. A GitHub Actions job on pull_request_target checks out the pull request and runs its build script. What can that pull request do?
+
+**Answer:** It can run in the base repository's context, which is where the secrets are. pull_request_target exists so a workflow can comment on a PR from a fork. It is not a place to execute the fork's code. I move the build to the pull_request event, which does not get those secrets, and I leave the privileged workflow with no checkout of the PR head. I rotate anything that job could already read.
+
+## 475. A Jenkins shared library on main changed, and every team pipeline failed in the same hour. How should that library have been consumed?
+
+**Answer:** Pinned. A @main include means the library's latest commit is part of every build, with no review in those repos. I pin a tag, I test the new tag in one pipeline, and then I move the pin. I also keep the library change small enough to roll back by moving the pin back. I do not restart the controller as the diagnosis. The console of one failed job already shows the library step.
+
+## 476. A debug step printed the environment and a cloud key appeared in the build log. What do you rotate, and what do you change?
+
+**Answer:** I rotate the key first. The log is a copy, and deleting the log line does not shrink the window during which it was valid. Then I remove the echo, I stop dumping the environment, and I bind the credential only inside the step that uses it. I check who can read old build logs. I treat the key as public from the moment it was printed.
+
+## 477. A Helm upgrade failed in the middle and the release is stuck failed. What does atomic change the next time?
+
+**Answer:** helm upgrade --atomic waits for the release to become ready and rolls back to the last good revision if it does not. Without it, I am left to notice the failed state and roll back myself, while traffic may already be on the broken revision. I still read why it failed before I retry. Atomic is the safety on the rollout. It is not a reason to skip the diff.
+
+## 478. terraform plan wants to destroy a production database because a resource was renamed in the configuration. How do you keep the database?
+
+**Answer:** I do not apply that plan. The rename changed the state address, so Terraform thinks the old object must go and a new one must be created. I add a moved block, or I move the state address, until the plan shows an update in place or no change. I take a snapshot before I touch it anyway. Deleting state to clear the plan is how the next apply creates a second copy and orphans the first.
+
+## 479. Two people run terraform apply against the same state and one's changes vanish. What control was missing?
+
+**Answer:** A lock on the remote state. Without it, both applies read the same state, both write, and the last write wins. I put the state in a backend that locks, and I treat force-unlock as a recovery for a dead process, not as a way to start my apply sooner. I also stop keeping a copy of the state on a laptop. That copy is how the lock gets bypassed.
+
+## 480. An Ansible playbook restarts the service on every run, even when the config did not change. Where should that restart live?
+
+**Answer:** In a handler notified by the task that renders the config. The task should report changed only when the file content changes. If it always reports changed, the handler always restarts, and every run is an outage window. I fix the task's comparison. I do not add a sleep. Idempotence means the second run is quiet.
+
+## 481. Production pulled a different image overnight because the deploy uses the tag latest. How do you stop that?
+
+**Answer:** I deploy the digest CI built, and I stop using a tag that can be moved. latest is a name, not a version. I also make the registry reject a retag of a release, or I ignore tags entirely in the manifest. The running pod should show the digest I approved. If it does not, the deploy is not done.
+
+## 482. A pod is OOMKilled and its memory limit equals its request. What do you look at before you only raise the limit?
+
+**Answer:** Why the process grew. A limit equal to the request means it cannot burst, so any growth kills it, but raising the limit on every node without a reason just moves the kill to the node. I look at the release, a cache with no bound, or a query that loaded the whole table. I set the request from the steady usage and the limit from the burst I am willing to pay for. I watch the next day rather than editing once and leaving.
+
+## 483. A pod stays Pending with Insufficient cpu while the node graph shows idle CPU. Why did the scheduler refuse it?
+
+**Answer:** Requests, not usage. Other pods have reserved the CPU, and the scheduler adds those requests up. The graph can look bored. I find the pods holding the reservation, I rightsize requests that were copied from a template, or I add a node. I do not delete the requests to make it schedule. A pod with no request is the first one evicted when the node actually gets busy.
+
+## 484. Someone added a NetworkPolicy that selects the app pods and specifies no allow rules. The namespace goes quiet. What did the policy change?
+
+**Answer:** Once a policy selects a pod, that direction defaults to deny. An empty policy is not a no-op. It is a lock. I add the ingress and egress the app actually needs, including DNS, or I remove the policy if it was applied by mistake. I test from a pod that should be allowed and from one that should not. I do not open 0.0.0.0/0 to get back to green and leave it there.
+
+## 485. A PersistentVolumeClaim stays Pending and the event says the storage class was not found. What is mismatched?
+
+**Answer:** The name on the claim does not match a StorageClass in the cluster. Nothing will provision. I either fix the name or I create the class the platform actually offers. I do not keep deleting the pod. The pod is waiting on the claim, and the claim is waiting on a class. A default class, if one exists, is what a claim with no class name uses. A wrong explicit name does not fall back to it.
+
+## 486. A pod is in CrashLoopBackOff after a config change. How do you see the error from the crash before you edit again?
+
+**Answer:** kubectl logs --previous on that container. The current container is waiting and has nothing to say. describe shows the exit code and the last state. I read those before I change the config a second time, because two untested edits hide which one failed. If the process dies before it opens a log, the previous log may be one line. That line is still the evidence.
+
+## 487. A service is enabled and not active after a reboot, then the opposite on another host. What do those two words mean?
+
+**Answer:** enabled means the unit is wired to start on boot. active means it is running now. I can have either one without the other. enable --now does both. is-enabled and is-active tell them apart. A unit that is enabled and failed still will not be up, and the reason is in the journal for that unit, not in a second reboot.
+
+## 488. df shows free space and the deploy cannot create files. What other resource do you check?
+
+**Answer:** Inodes. df -i. The filesystem can have bytes left and no free inodes, and every create fails. I find the directory full of small files, often a cache or a socket directory, and I clean it with the same care as a full disk. I also alert on inode use. A disk alert on bytes alone will stay green through this failure.
+
+## 489. A Python CI step builds a shell command with an f-string that includes the branch name. Why is that dangerous?
+
+**Answer:** The branch name becomes shell syntax. A branch called something with a semicolon runs a second command. I pass arguments as a list to subprocess and I do not use shell=True. The branch name stays one argument. I treat any string that came from a pull request as data, not as code, including file names.
+
+## 490. release-preflight exits 1 on a pull request because it found a password assignment. Should the pipeline go green?
+
+**Answer:** No. Exit 1 is a finding. The job should fail. Exit 0 would mean the tree passed. Exit 2 would mean the tool was invoked wrong. I do not print the password in the log to prove the finding. The path and the rule are enough. I remove the secret, I rotate it if it was real, and I rerun.
+
+## 491. You need a CI check that reads JSON, applies three rules, and has a unit test. Why Python rather than a longer shell pipeline?
+
+**Answer:** The shell is fine for one test and one exit code. JSON, branches, and a test I can run locally are why this becomes a small Python tool. I still pin it and I still exit non-zero on a finding. I do not start a web service. Ansible and Terraform keep their jobs. This is a check in the pipeline, which is the scope I want.
+
+## 492. A GCP firewall rule targets a network tag. The replacement instance has no tag and is unreachable. What do you target instead?
+
+**Answer:** The service account the instance runs as. A tag has to be remembered on the next template. The service account is already the identity of the workload. I also check that the rule's direction and priority are what I think, because a lower-priority deny still wins if I misread the numbers. The VPC being global does not apply the tag for me.
+
+## 493. You are choosing between Cloud Run and GKE for a stateless HTTP service with no special node needs. How do you decide?
+
+**Answer:** Cloud Run, unless I need something it does not have. The service scales with requests, including to zero, and I do not run a cluster to get that. I move to GKE when I need sidecars I cannot express, DaemonSets, a custom network policy model, or a long-lived worker that is not a request. I do not pick GKE because it is familiar and then pay for idle nodes.
+
+## 494. A canary receives a small slice of traffic and the global dashboard looks fine. The canary is in fact failing. How do you see it?
+
+**Answer:** I graph the canary's own error rate and latency, labeled by version, and I set the abort rule on that series. Five percent of a failure disappears inside the rest. I also send a synthetic check at the canary, not only at the stable service. I do not promote because the summed graph was flat. Flat is what a small slice looks like.
+
+## 495. Only one region is timing out. The release is the same in both. What do you fail over, and what do you not touch yet?
+
+**Answer:** I treat it as that region's dependency until I prove the release. I check the regional database, NAT, DNS answers, and capacity. I fail traffic away from the region if the dependency is dead and the other region can take the load. I do not roll back the healthy region to chase a fault it does not have. If both regions share one database and that database is the fault, failover of the app changes nothing.
+
+## 496. Image pulls filled a node disk and kubelet is evicting pods. What do you do tonight, and what do you change so it does not repeat?
+
+**Answer:** Tonight I free disk: unused images, and I confirm the eviction threshold has room again. I do not delete customer data volumes to make space for layers. Then I turn on image garbage collection, I alert on disk before the eviction line, and I stop a deploy strategy that pulls unbounded layers onto a small node. A bigger disk without an alert is the same incident later.
+
+## 497. Every CPU spike pages someone, and real incidents are missed. How do you page on the SLO instead?
+
+**Answer:** I define the user-facing indicator, availability or latency, and a budget. A fast burn pages. A slow burn becomes a ticket. CPU moves to a dashboard unless it predicts the budget burn. I delete or demote the alerts that fired last month and changed nobody's action. I count pages per week after the change. Fewer pages only counts if the missed incident would still have paged.
+
+## 498. Prometheus memory climbs after a metric starts labeling by user id. What do you remove?
+
+**Answer:** The user id label. That is unbounded cardinality, one series per user, and it will not level off. I keep labels that are small sets: service, code, a route template rather than the raw path. The per-user detail belongs in a log or a trace, where it is an event, not a series stored forever. I do not give Prometheus more memory as the design.
+
+## 499. A trace says the service spent 40 milliseconds, and the user waited 4 seconds. Where is the missing time?
+
+**Answer:** Outside the span I am looking at. Queueing before the request was recorded, a client retry, DNS, TLS, or a hop that is not in the trace. I look at the client timing and at the gaps between spans. I do not optimize the function that already took 40 milliseconds. The trace is evidence of what was measured. The wait the user felt includes what was not measured.
+
+## 500. A node drain waits forever and the events blame a PodDisruptionBudget. What did the budget demand?
+
+**Answer:** It demanded more available pods than a voluntary drain can leave. minAvailable set to the replica count means the drain must keep every pod, so it never starts. I set the budget to the number I can lose, usually one, and I keep enough replicas to satisfy it during the drain. A node crash is not voluntary and the budget will not stop that. I do not delete the budget to finish tonight's drain and leave the next one unprotected.

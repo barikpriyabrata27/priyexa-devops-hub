@@ -15,6 +15,7 @@ has its own folder, and each roadmap topic has its own Markdown file.
 - [Authentication and Authorization](auth/README.md)
 - [Observability](observability/README.md)
 - [Linux](linux/README.md)
+- [Networking](networking/README.md)
 - [Python](python/README.md)
 
 See the [top-level README](../README.md) for the full repo index and the
