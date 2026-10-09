@@ -812,6 +812,10 @@ function filteredBank() {
 
 function renderQuickFilters() {
 
+  if (!$("#quick-filter-list")) {
+    return;
+  }
+
   const categories = [
     ...new Set(
       state.questions.map(
@@ -2035,7 +2039,7 @@ document.addEventListener(
 
               const qfiMode = state.mode === "qfi";
               $(".filters").classList.toggle("hidden", qfiMode);
-              $("#quick-filter-list").classList.toggle("hidden", qfiMode);
+              $("#quick-filter-list")?.classList.toggle("hidden", qfiMode);
 
               if (!qfiMode) {
                 renderQuickFilters();
