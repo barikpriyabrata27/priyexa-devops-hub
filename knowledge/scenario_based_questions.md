@@ -705,14 +705,7 @@ release/tagging strategy.
 
 ## 86. Your Jenkins pipeline successfully builds the Docker image but fails while pushing it to ECR. What would you check?
 
-**Answer:** I start with the first meaningful failure in the console log
-rather than the last cascade error. I identify the failed stage, compare
-it with the last successful run, and check recent code, Jenkinsfile,
-agent availability, credentials, tool versions, network access and
-external dependencies. I reproduce the failing command on the same agent
-where possible. After fixing the root cause, I rerun from a clean state
-and add a guardrail---such as version pinning, validation or
-monitoring---if the failure could recur.
+**Answer:** The image already exists, so I do not rebuild it. The failure is the push to ECR. I read the first error from docker push. The usual causes are authentication and the repository. The agent needs an IAM role that can call ecr:GetAuthorizationToken and push to that repository, then docker login against the registry URL for the right region. A token from the wrong account, or a repository that was never created, fails here even though the build was green. The name must be account.dkr.ecr.region.amazonaws.com/repository:tag. I also check that the agent can reach the ECR endpoint, which a private subnet without a route or a VPC endpoint will block. I do not store a long-lived AWS key in the job if the instance role can do this.
 
 ## 87. The CI pipeline is successful, but the deployment to Kubernetes fails. How would you identify where the problem is?
 
@@ -1617,7 +1610,7 @@ application logs, traces and deployment events.
 
 ## 203. Where would you store the Docker images?
 
-**Answer:** In a registry, not on a laptop and not as a tarball on a share. On AWS that is ECR, one repository per service, in the same account and region as the cluster. The pipeline pushes the image tagged with the commit SHA and I deploy by digest. Latest is not a release. The node role can pull. Developers can push only through the pipeline, or to a dev repository. Lifecycle policy expires untagged builds so the bill does not grow forever. Image scanning runs on push. Production pulls from the prod registry, which receives a promoted digest, not a rebuild.
+**Answer:** In a container registry. Docker Hub is the public registry. A private registry such as Amazon ECR is the same kind of store in your own account. The image does not live on a laptop. The pipeline authenticates, pushes the image, and the cluster pulls that same image by digest. The tag latest is not a release, because someone can move it. People do not push from their laptops to the production registry.
 
 ## 204. If you have 10 EC2 instances and need to install packages on all of them, how would you configure the instances without manually configuring each one?
 
@@ -2909,7 +2902,7 @@ rollback/recovery plan.
 
 ## 487. A service is enabled and not active after a reboot, then the opposite on another host. What do those two words mean?
 
-**Answer:** enabled means the unit is wired to start on boot. active means it is running now. I can have either one without the other. enable --now does both. is-enabled and is-active tell them apart. A unit that is enabled and failed still will not be up, and the reason is in the journal for that unit, not in a second reboot.
+**Answer:** These are systemd words, read with systemctl. enabled means the unit is wired to start on boot. active means it is running now. I can have either one without the other. systemctl enable --now does both. is-enabled and is-active tell them apart. A unit that is enabled and failed still will not be up, and the reason is in the journal for that unit, not in a second reboot.
 
 ## 488. df shows free space and the deploy cannot create files. What other resource do you check?
 

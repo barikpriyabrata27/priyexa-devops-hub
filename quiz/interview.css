@@ -4,3 +4,5 @@
 @media(max-width:720px){.mode-grid{grid-template-columns:1fr}.qfi-answer-actions{align-items:stretch;flex-direction:column}.qfi-answer-actions .secondary-button{width:100%}}
 .topbar .brand .brand-logo{width:80px;height:80px}
 .topbar{justify-content:flex-start}.topbar-actions{order:0;margin-right:20px}.brand{order:1;margin-left:auto}.brand-logo{width:42px;height:42px;object-fit:contain;border-radius:4px}
+.notes-link{color:var(--green);font-weight:600;font-size:13px;text-decoration:none;border:1px solid var(--green);border-radius:999px;padding:6px 12px;white-space:nowrap}.notes-link:hover{background:var(--green);color:#fff}
+.footer-links{display:flex;gap:16px}

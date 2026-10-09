@@ -1,0 +1,146 @@
+:root {
+  --ink: #13252b;
+  --muted: #63777b;
+  --paper: #f6f4ee;
+  --panel: #fffdf8;
+  --line: #d9e0d8;
+  --mint: #c8e7d5;
+  --green: #20634f;
+  --orange: #e98052;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  background-image: radial-gradient(circle at 10% 5%, rgba(200, 231, 213, .6), transparent 28%);
+}
+
+.shell {
+  width: min(1180px, calc(100% - 48px));
+  margin: auto;
+}
+
+.topbar {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 36px;
+  padding: 28px 0 64px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: 16px;
+  align-self: start;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.nav a:hover,
+.nav a.active {
+  background: var(--mint);
+  color: var(--ink);
+}
+
+.note {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 28px 32px 40px;
+  min-width: 0;
+  line-height: 1.6;
+}
+
+.note h1 {
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -.04em;
+  margin: 0 0 16px;
+}
+
+.note h2 { margin: 28px 0 8px; font-size: 24px; }
+.note h3 { margin: 22px 0 8px; font-size: 18px; }
+
+.note p { margin: 12px 0; }
+
+.note a { color: var(--green); }
+
+.note blockquote {
+  margin: 16px 0;
+  padding: 4px 0 4px 16px;
+  border-left: 3px solid var(--orange);
+  color: var(--ink);
+}
+
+.note ul, .note ol { padding-left: 22px; }
+.note li { margin: 6px 0; }
+
+.note code {
+  font: 500 13px "DM Mono", monospace;
+  background: #f3f0e6;
+  padding: 1px 5px;
+}
+
+.note pre {
+  overflow: auto;
+  background: #13252b;
+  color: #f6f4ee;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.note pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.note table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+  margin: 16px 0;
+}
+
+.note th, .note td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.note th { background: #f3f0e6; }
+
+.note hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+
+@media (max-width: 720px) {
+  .shell { width: min(100% - 28px, 640px); }
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .nav { position: static; flex-direction: row; flex-wrap: wrap; }
+  .note { padding: 18px 16px 28px; }
+}

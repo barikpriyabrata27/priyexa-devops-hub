@@ -5,7 +5,7 @@ const HISTORY_KEY = "clustercraft-score-history";
 
 // Knowledge base docs live in the same repo; more topic files land here over time.
 const KNOWLEDGE_BASE_URL =
-  "https://github.com/barikpriyabrata27/bitwise-devops-hub/blob/main/knowledge";
+  "notes.html#";
 
 const KNOWLEDGE_PATHS = {
   knowledge: `${KNOWLEDGE_BASE_URL}/README.md`,
@@ -508,7 +508,7 @@ function escapeHTML(value) {
 
 
 const TECHNICAL_TERMS = new Set(
-  `alb alert alertmanager ami ansible api application apply architecture artifact autoscaling availability aws backup backend branch build canary certificate ci cd cloud cloudformation cloudfront cloudwatch cluster config configuration container controller count cpu cronjob cve cdk cni crashloopbackoff credential daemonset database deployment devops digest disaster disk docker dockerfile dns drift ebs ec2 ecr eks elasticsearch endpoint entrypoint error errors exporter failover file filesystem firewall fluentbit foreach gateway git gitops github githubactions grafana graceful helm hpa http https iam iac image incident infrastructure init internet interpreter jenkins jaeger job json kibana kubectl kubernetes kubelet latency leadership linux loadbalancer localexec log logstash metric microservice monitoring nat network networkpolicy nginx node nlb oauth oidc opentelemetry oom ownership p1 php permission pipeline pod poddisruptionbudget policy process prometheus promql provisioner probe provider proxy pvc rbac rca rds readiness recovery release replica repository request resource response rollback root route rpo rto runtime s3 sast scale scaling sca scrape script secret security server service sdlc shebang shell shutdown signal sla sli slo snapshot socket ssh ssl state statefulset status sticky subnet suid systemd target tcp terraform test tf tls trace tracing traffic troubleshoot uptime variable vpc volume workflow yaml`
+  `alb alert alertmanager ami ansible api application apply architecture artifact autoscaling availability aws backup backend branch build canary certificate ci cd cloud cloudformation cloudfront cloudwatch cluster config configuration container controller count cpu cronjob cve cdk cni crashloopbackoff credential daemonset database deployment devops digest disaster disk docker dockerfile dns drift ebs ec2 ecr eks elasticsearch endpoint entrypoint error errors exporter failover file filesystem firewall fluentbit foreach gateway git gitops github githubactions grafana graceful handler helm hpa http https iam iac image incident infrastructure init inode internet interpreter jenkins jaeger job json kibana kubectl kubernetes kubelet latency leadership linux loadbalancer localexec log logstash metric microservice monitoring nat network networkpolicy nginx node nlb oauth oidc opentelemetry oom ownership p1 php permission pipeline pod poddisruptionbudget policy process prometheus promql provisioner probe provider proxy pvc rbac rca rds readiness recovery registry release replica repository request resource response rollback root route rpo rto runtime s3 sast scale scaling sca scrape script secret security server service sdlc shebang shell shutdown signal sla sli slo snapshot socket ssh ssl state statefulset status sticky subnet suid systemd target tcp terraform test tf tls trace tracing traffic troubleshoot uptime variable vpc volume workflow yaml`
     .toLowerCase()
     .split(" ")
     .map(normalizeAnswerWord)
@@ -573,6 +573,9 @@ const TECHNICAL_PHRASES = [
   "version control",
   "personal access token",
   "docker registry",
+  "docker hub",
+  "container registry",
+  "fluent bit",
   "declarative pipeline",
   "root cause analysis",
   "roll back",
@@ -581,54 +584,6 @@ const TECHNICAL_PHRASES = [
   "5xx error",
   "file permission"
 ];
-const QUESTION_TECHNICAL_RUBRICS = {
-  1: ["devops", "ci cd", "terraform", "kubernetes", "aws", "monitoring"],
-  4: ["logging", "fluentbit", "elasticsearch", "kibana", "logstash"],
-  28: ["automation", "ci cd", "monitoring", "metrics", "deployment"],
-  29: ["metrics", "logs", "traces", "deployment", "rollback", "dependencies"],
-  36: ["dns", "tcp", "tls", "http", "load balancer"],
-  41: ["terraform", "count", "for each", "resource", "state"],
-  45: ["terraform", "local exec", "remote exec", "provisioner", "ssh"],
-  49: ["sdlc", "ci cd", "automation", "deployment", "monitoring"],
-  57: ["iac", "terraform", "state", "module", "version control"],
-  62: ["bash", "shell", "script", "automation", "exit code"],
-  121: ["incident", "metrics", "logs", "rollback", "root cause analysis"],
-  140: ["incident", "metrics", "logs", "traces", "mitigation", "root cause analysis"],
-  141: ["deployment", "secret", "least privilege", "monitoring", "rollback"],
-  198: ["architecture", "ci cd", "aws", "terraform", "kubernetes", "monitoring"],
-  205: ["jenkins", "jenkins home directory", "workspace", "plugin", "configuration"],
-  206: ["github", "jenkins", "git checkout", "git repository", "credentials"],
-  207: ["jenkins", "github", "plugin", "webhook", "source control"],
-  208: ["docker", "jenkins credentials", "docker registry", "secret", "pipeline"],
-  209: ["github", "jenkins", "ssh", "personal access token", "credentials"],
-  210: ["jenkins", "declarative pipeline", "stage", "agent", "credentials"],
-  218: ["terraform", "hcl", "provider", "resource", "configuration"],
-  230: ["dns", "route table", "security group", "load balancer", "ingress"],
-  240: ["deployment", "rollback", "health check", "artifact", "canary"],
-  254: ["pod disruption budget", "availability", "replica", "drain"],
-  265: ["fluentbit", "logstash", "elasticsearch", "kibana", "microservice"],
-  268: ["ingress", "service", "endpoint", "readiness probe", "pod"],
-  270: ["gitops", "argocd", "kubernetes", "rbac", "release"],
-  317: ["http 502", "http 503", "load balancer", "ingress", "endpoint"],
-  327: ["infrastructure", "compute", "network", "storage", "cloud"],
-  330: ["ci cd", "aws", "terraform", "docker", "kubernetes", "prometheus"],
-  346: ["iac", "terraform", "state", "module", "version control"],
-  353: ["dns", "tcp", "tls", "http", "load balancer", "ingress"],
-  354: ["wordpress", "php", "mysql", "nginx", "tls", "database"],
-  355: ["shebang", "bash", "shell", "interpreter", "script", "permission"],
-  368: ["signal", "graceful shutdown", "process", "container", "kubernetes"],
-  379: ["service-to-pod connectivity", "service", "endpoint", "selector", "network policy"],
-  404: ["server", "process", "port", "firewall", "logs"],
-  409: ["release rollback", "deployment", "artifact", "health check", "terraform state"],
-  412: ["http 5xx", "service", "endpoint", "readiness probe", "ingress", "pod"],
-  420: ["logs", "metrics", "traces", "correlation", "alert"],
-  421: ["root cause analysis", "incident", "timeline", "impact", "remediation", "prevention"],
-  423: ["disaster recovery", "backup", "failover", "rpo", "rto"],
-  432: ["infrastructure", "compute", "network", "storage", "cloud"],
-  435: ["ci cd", "aws", "terraform", "docker", "kubernetes", "prometheus"],
-  445: ["ingress", "service", "endpoint", "readiness probe", "pod"],
-  447: ["gitops", "argocd", "kubernetes", "rbac", "release"]
-};
 const HUMAN_READABLE_CONNECTORS = new Set(
   "a an and are as at be because by can for from has have if in into is it of on or should so that the then these this to was were when which while will with would".split(" ")
 );
@@ -731,6 +686,8 @@ function normalizeAnswerWord(word) {
 function getAnswerWords(text) {
 
   return String(text || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
     .toLowerCase()
     .match(/[a-z][a-z0-9+#]*(?:\.[a-z0-9+#]+)*/g)
     ?.map(normalizeAnswerWord) || [];
@@ -748,10 +705,6 @@ function containsAnswerPhrase(words, phrase) {
 
 
 function getQfiKeyTerms(question) {
-
-  if (QUESTION_TECHNICAL_RUBRICS[question.id]) {
-    return QUESTION_TECHNICAL_RUBRICS[question.id];
-  }
 
   const answerWords = getAnswerWords(question.referenceAnswer);
   const genericAnswerPatterns = [
@@ -775,7 +728,14 @@ function getQfiKeyTerms(question) {
     TECHNICAL_TERMS.has(word) && !coveredWords.has(word)
   );
 
-  return [...new Set([...phrases, ...terms])].slice(0, 10);
+  const ranked = [...new Set([...phrases, ...terms])];
+  const questionWords = new Set(getAnswerWords(question.question));
+  const focused = ranked.filter((term) =>
+    getAnswerWords(term).some((word) => questionWords.has(word))
+  );
+  const supporting = ranked.filter((term) => !focused.includes(term));
+
+  return [...focused, ...supporting].slice(0, 8);
 }
 
 
