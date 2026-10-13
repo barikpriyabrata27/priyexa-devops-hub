@@ -26,6 +26,6 @@ if __name__ == "__main__":
 
 ## Layout
 
-One module is fine for a check. A tool you will keep gets a package, a `pyproject.toml`, and tests. The test is what lets you change the scanner without being afraid of the pipeline. See [packaging](packaging.md) and the [release-preflight](../../projects/release-preflight/README.md) project.
+One module is fine for a check. A tool you will keep gets a package, a `pyproject.toml`, and tests. Tests let you change the tool without being afraid of the pipeline. See [packaging](packaging.md) for how to package a reusable command-line tool.
 
 Do not put passwords in the source. Read them from the environment at runtime, and do not print that environment.

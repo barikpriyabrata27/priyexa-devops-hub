@@ -55,10 +55,6 @@ link back to the repos above: [CI/CD](knowledge/ci-cd/README.md),
 [Networking](knowledge/networking/README.md), and
 [Python](knowledge/python/README.md).
 
-A small Python tool in this repo, [release-preflight](projects/release-preflight/README.md),
-checks a directory for secrets, floating image tags, and risky Kubernetes
-settings before a deploy.
-
 ## Interview quiz
 
 [`quiz/`](quiz/) contains a standalone, interactive interview practice quiz

@@ -19506,20 +19506,6 @@
     "explanation": "A Linux agent and a Windows laptop do not use the same separator. Path and an explicit utf-8 encoding keep the script from depending on the machine."
   },
   {
-    "id": 1380,
-    "category": "Python",
-    "difficulty": "Beginner",
-    "question": "release-preflight exits 1 when:",
-    "options": [
-      "The directory is clean",
-      "It finds a secret, a floating image tag, a root container, or a workload with no resource requests",
-      "The path does not exist",
-      "Python is older than 3.10"
-    ],
-    "answer": 1,
-    "explanation": "Exit 1 is a finding and should fail the pipeline. Exit 2 is a usage or missing-path error. Exit 0 means the tree passed the local gates."
-  },
-  {
     "id": 1381,
     "category": "Python",
     "difficulty": "Intermediate",
@@ -19531,7 +19517,7 @@
       "Show the date"
     ],
     "answer": 1,
-    "explanation": "The shell is enough for a single check. JSON, several rules, and a unit test are why this repo's release-preflight is Python. Ansible and Terraform still own machines and cloud resources."
+    "explanation": "The shell is enough for a single check. Python is useful when logic involves structured data and multiple conditions that benefit from tests. Ansible and Terraform still own machine configuration and cloud infrastructure."
   },
   {
     "id": 1382,

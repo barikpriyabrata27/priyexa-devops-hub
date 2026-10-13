@@ -21,7 +21,3 @@ Use the shell for a one-liner on a host. Use Python when there are branches, whe
 - [Running commands](subprocess.md) — when Python has to call another program
 - [Logging](logging.md) — so a job is debuggable in CI
 - [Packaging](packaging.md) — so the pipeline installs the same code you tested
-
-## A project
-
-[release-preflight](../../projects/release-preflight/README.md) is a small command-line tool in this repo. It scans a directory before a deploy and fails if it finds a likely secret, an image tagged `latest`, a container running as root, or a Kubernetes workload with no resource requests. Read the notes above, then run that tool and its tests.

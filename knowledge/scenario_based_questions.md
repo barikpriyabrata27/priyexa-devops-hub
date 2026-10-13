@@ -2912,9 +2912,9 @@ rollback/recovery plan.
 
 **Answer:** The branch name becomes shell syntax. A branch called something with a semicolon runs a second command. I pass arguments as a list to subprocess and I do not use shell=True. The branch name stays one argument. I treat any string that came from a pull request as data, not as code, including file names.
 
-## 490. release-preflight exits 1 on a pull request because it found a password assignment. Should the pipeline go green?
+## 490. A CI check exits 1 on a pull request because it found a password assignment. Should the pipeline go green?
 
-**Answer:** No. Exit 1 is a finding. The job should fail. Exit 0 would mean the tree passed. Exit 2 would mean the tool was invoked wrong. I do not print the password in the log to prove the finding. The path and the rule are enough. I remove the secret, I rotate it if it was real, and I rerun.
+**Answer:** No. Exit 1 is a finding, so the job should fail. Exit 0 means the check passed. I do not print the password in the log to prove the finding. The path and rule are enough. I remove the secret, rotate it if it was real, and rerun the check.
 
 ## 491. You need a CI check that reads JSON, applies three rules, and has a unit test. Why Python rather than a longer shell pipeline?
 
