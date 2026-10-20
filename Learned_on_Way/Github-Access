@@ -1,0 +1,143 @@
+# GitHub SSH Keys and OAuth
+
+## 1. Overview
+
+GitHub uses different authentication mechanisms for Git operations and GitHub CLI (`gh`) API operations.
+
+- **SSH key:** Authenticates Git operations such as clone, fetch, pull, and push.
+- **OAuth/token:** Authenticates GitHub CLI commands that access the GitHub API, such as viewing repositories and pull requests.
+
+SSH authentication and GitHub CLI authentication are separate.
+
+## 2. Current SSH Configuration
+
+SSH keys are stored in `~/.ssh/` on the local machine.
+
+| Purpose | SSH alias | Key file |
+|---|---|---|
+| Personal GitHub | `github.com` | `id_ed25519` |
+| Company GitHub | `github-company` | `id_ed25519_company` |
+| Jenkins integration | Depends on Jenkins configuration | `jenkins_github_ed25519` |
+
+The current SSH configuration routes GitHub connections through `ssh.github.com` on port `443`.
+
+Example configuration:
+
+```sshconfig
+Host github.com
+    HostName ssh.github.com
+    User git
+    Port 443
+    IdentityFile ~/.ssh/id_ed25519
+
+Host github-company
+    HostName ssh.github.com
+    User git
+    Port 443
+    IdentityFile ~/.ssh/id_ed25519_company
+```
+
+## 3. Company Repository Configuration
+
+Repository: `RAD365-INC/radexcel-app`
+
+Remote URL:
+
+```bash
+git@github-company:RAD365-INC/radexcel-app.git
+```
+
+Check the remote:
+
+```bash
+git remote -v
+```
+
+Test company SSH authentication:
+
+```bash
+ssh -T git@github-company
+```
+
+A successful response identifies the authenticated GitHub account.
+
+Check repository access:
+
+```bash
+git ls-remote origin
+```
+
+If commit hashes and references are returned, SSH authentication and repository read access are working.
+
+## 4. SSH vs OAuth
+
+### SSH authentication
+
+SSH uses a private/public key pair.
+
+- The private key remains on the local machine.
+- The public key is registered with GitHub.
+- SSH proves the identity associated with the key.
+- GitHub repository permissions determine which operations are allowed.
+
+Example:
+
+```bash
+git fetch origin
+git pull origin main
+git push origin main
+```
+
+### GitHub CLI authentication
+
+GitHub CLI (`gh`) uses an authentication token to access GitHub APIs.
+
+Check the current CLI account:
+
+```bash
+gh auth status
+```
+
+View repository information:
+
+```bash
+gh repo view RAD365-INC/radexcel-app
+```
+
+A working SSH key does not automatically authenticate GitHub CLI because SSH credentials and API tokens serve different purposes.
+
+## 5. Current Authentication Status
+
+The following results were verified on the local machine:
+
+- SSH authentication using `github-company` succeeded as `pbarik-devops`.
+- `git ls-remote origin` successfully returned repository references.
+- GitHub CLI was logged in as `barikpriyabrata27`.
+- `gh repo view RAD365-INC/radexcel-app` returned a repository resolution error.
+
+The CLI error may be caused by account permissions, repository visibility, or the CLI's active account. It does not indicate an SSH failure.
+
+If GitHub CLI access is needed, authenticate the intended account separately:
+
+```bash
+gh auth login --hostname github.com --git-protocol ssh --web
+```
+
+Follow the prompts and authenticate using the intended GitHub account. Then verify the account with:
+
+```bash
+gh auth status
+```
+
+## 6. Security Best Practices
+
+- Never commit private SSH keys or OAuth tokens to a repository.
+- Never share private key files such as `id_ed25519_company`.
+- Public keys (`*.pub`) can be registered with GitHub but should only be shared when appropriate.
+- Do not store access tokens in source code, configuration files, or documentation.
+- Use separate SSH identities for personal and company repositories.
+- Grant only the permissions required for the work.
+
+## Summary
+
+**SSH keys authenticate Git transport; OAuth/token credentials authenticate GitHub CLI API requests.** Both may be needed on the same machine, but configuring one does not automatically configure the other.
