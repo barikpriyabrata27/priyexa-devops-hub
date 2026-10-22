@@ -1,0 +1,669 @@
+# RAD365 Project — Discussion Summary and Technical Recommendations
+
+## 1. Project Overview
+
+RAD365 is a freelance project focused on storing and managing medical documents and X-ray images so doctors can access them and provide their input.
+
+Based on our discussion, the current environment appears to have:
+
+- A single Git repository containing a UI and approximately three to four APIs.
+- Separate deployment scripts for database changes, APIs, and potentially other components.
+- AWS EC2 instances hosting applications on IIS servers.
+- An existing deployment process that we want to improve using CI/CD.
+
+**Important:** The repository structure, application framework, deployment boundaries, and storage implementation still need to be verified.
+
+---
+
+## 2. Docker Fundamentals
+
+### 2.1 What is Docker?
+
+Docker is a containerization platform used to build images and run applications in containers.
+
+- **Dockerfile:** Defines how an application image is built.
+- **Docker image:** A packaged template containing the application, its dependencies, and the filesystem components it needs.
+- **Container:** A running instance of an image.
+- **Container runtime:** Software responsible for creating and running containers.
+- **Docker Compose:** A tool for defining and running applications consisting of multiple containers.
+
+### 2.2 Common Dockerfile Instructions
+
+| Instruction | Purpose |
+|---|---|
+| `FROM` | Specifies the base image. |
+| `WORKDIR` | Sets the working directory inside the image. |
+| `COPY` | Copies files into the image. |
+| `RUN` | Executes commands while building the image. |
+| `ENV` | Sets environment variables. |
+| `EXPOSE` | Documents the port the application uses. |
+| `CMD` | Defines the default command to run. |
+| `ENTRYPOINT` | Defines the main executable for the container. |
+
+Example:
+
+```dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "app.py"]
+```
+
+This is an illustrative Python example, not the Dockerfile for RAD365.
+
+### 2.3 How Containers Use Operating Systems
+
+Containers do not generally run a separate guest operating system in the same way a virtual machine does.
+
+A Linux container shares the Linux kernel of its host environment while providing its own isolated filesystem view, processes, and other resources.
+
+A container image can include user-space components such as:
+
+- Application files.
+- Libraries and dependencies.
+- Configuration files.
+- Runtime components.
+
+A compatible host kernel and container runtime are required to run the container.
+
+On Windows, Docker Desktop can provide the environment for running Linux containers through a Linux virtual machine or another supported backend.
+
+### 2.4 Docker Volumes
+
+A container has a writable filesystem layer, but that layer is tied to the container's lifecycle.
+
+If a container is deleted, data stored only in that writable layer is lost.
+
+Docker volumes provide persistent storage independently of an individual container.
+
+Example:
+
+```yaml
+services:
+  database:
+    image: postgres:16
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+volumes:
+  database_data:
+```
+
+In this example:
+
+- `/var/lib/postgresql/data` is the path inside the container.
+- `database_data` is the Docker-managed volume.
+- PostgreSQL writes its database files to that path.
+- Docker manages the volume's underlying storage.
+
+The volume survives container replacement, although backups are still necessary.
+
+### 2.5 What is Docker Compose?
+
+Docker Compose uses a YAML file to define services, networks, volumes, environment variables, and other configuration.
+
+For example:
+
+```yaml
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - app_data:/app/data
+
+volumes:
+  app_data:
+```
+
+Start the application:
+
+```bash
+docker compose up -d
+```
+
+Stop the services:
+
+```bash
+docker compose down
+```
+
+By default, `docker compose down` does not remove named volumes. However, using the `-v` option can remove the associated named volumes.
+
+---
+
+## 3. How Docker Fits into CI/CD
+
+A typical container-based CI/CD workflow looks like this:
+
+1. A developer commits code and opens a pull request.
+2. CI runs validations, tests, and security checks.
+3. CI builds a Docker image.
+4. The image is tagged and pushed to a container registry.
+5. CD deploys the image to an environment.
+6. A container runtime starts the container.
+7. Persistent data is stored using appropriate volumes or external storage.
+
+Example:
+
+```text
+Developer
+    |
+    v
+Git Repository
+    |
+    v
+CI Pipeline
+    |
+    +--> Build
+    +--> Test
+    +--> Security Scans
+    |
+    v
+Container Image
+    |
+    v
+Container Registry
+    |
+    v
+CD Pipeline
+    |
+    v
+Deployment Environment
+    |
+    +--> Docker on a supported server
+    |
+    +--> Kubernetes cluster
+    |
+    +--> AWS ECS
+```
+
+**Key principle:** Building an image and running an image are different activities.
+
+The deployment target needs a compatible runtime or orchestration environment. The CI/CD runner does not necessarily need to be the same machine that runs the application.
+
+Kubernetes orchestrates containers across nodes. Its nodes use a compatible container runtime, commonly containerd, to run them.
+
+---
+
+## 4. Understanding the Existing RAD365 Environment
+
+Our current understanding is that RAD365 runs on AWS EC2 instances configured as IIS servers.
+
+### 4.1 What is EC2?
+
+Amazon EC2 provides virtual servers in AWS.
+
+An EC2 instance can run Windows or Linux, depending on the selected operating system image.
+
+### 4.2 What is IIS?
+
+Internet Information Services (IIS) is Microsoft's web server for Windows.
+
+For example:
+
+```text
+AWS
+ |
+ +--> Windows EC2 Instance
+       |
+       +--> IIS
+       |     |
+       |     +--> UI or web application
+       |     +--> API application
+       |
+       +--> Application files
+       |
+       +--> Deployment scripts
+```
+
+The actual arrangement depends on how RAD365 is configured.
+
+IIS is not automatically required for every .NET application. The correct hosting option depends on whether RAD365 uses ASP.NET Core, older ASP.NET Framework, and any additional application dependencies.
+
+### 4.3 Should We Introduce Docker Immediately?
+
+Not necessarily.
+
+For the initial phase, the lower-risk option is to automate the existing IIS deployment process.
+
+A potential approach:
+
+1. Build and test the application.
+2. Produce a versioned deployment artifact.
+3. Transfer the artifact securely to the appropriate EC2 instance.
+4. Execute the existing deployment process or an improved PowerShell deployment script.
+5. Validate the deployment.
+6. Roll back if necessary.
+
+Containerization can be evaluated later if it provides clear benefits.
+
+---
+
+## 5. Monorepo and Multiple APIs
+
+A monorepo is a single repository containing multiple projects or applications.
+
+It does not automatically mean that every component must be built and deployed together.
+
+For example:
+
+```text
+rad365/
+├── src/
+│   ├── UI/
+│   ├── API1/
+│   ├── API2/
+│   ├── API3/
+│   └── API4/
+├── database/
+│   ├── migrations/
+│   └── deployment-scripts/
+├── scripts/
+│   ├── deploy-ui.ps1
+│   ├── deploy-api1.ps1
+│   └── deploy-api2.ps1
+├── tests/
+└── .github/
+    └── workflows/
+```
+
+This is an illustrative folder structure. We must inspect the real repository before deciding how to organize the pipeline.
+
+### 5.1 Why Project Files Matter
+
+For a .NET project, look for files such as:
+
+- `*.csproj` — project definitions.
+- `*.sln` — Visual Studio solution files.
+- `Program.cs` — application startup in many modern .NET applications.
+- `Startup.cs` — used in some ASP.NET Core applications.
+- `Controllers/` — often contains API controllers.
+- `appsettings.json` — application configuration.
+- `web.config` — may contain IIS hosting configuration.
+
+Multiple `.csproj` files can indicate separate projects, but they do not automatically prove that each project is an independently deployable service.
+
+A solution may contain multiple class libraries and a single web application. Those libraries may all need to be built together.
+
+### 5.2 Two Possible Build Strategies
+
+**Strategy A: Independent applications**
+
+If each API has its own project and deployment boundary:
+
+```text
+Change in API2
+    |
+    v
+Build API2 and required dependencies
+    |
+    v
+Run API2 tests
+    |
+    v
+Publish API2 artifact
+    |
+    v
+Deploy API2
+```
+
+Unrelated APIs do not need to be redeployed.
+
+**Strategy B: One application with multiple endpoints**
+
+If all APIs are controllers inside one ASP.NET application:
+
+```text
+Change in a controller
+    |
+    v
+Build the web application
+    |
+    v
+Run application tests
+    |
+    v
+Publish the application artifact
+    |
+    v
+Deploy the application
+```
+
+In this case, the APIs may need to be released together because they belong to the same deployable application.
+
+### 5.3 How Should We Decide?
+
+Inspect the project files, project references, build commands, and deployment scripts.
+
+Also determine whether the UI and APIs share libraries, configuration, or database changes.
+
+Path-based filtering in GitHub Actions can help identify which components changed, but path filters should not replace dependency analysis. A change in shared code may require rebuilding multiple components.
+
+---
+
+## 6. Recommended CI/CD Design for RAD365
+
+For the current EC2/IIS environment, begin with GitHub Actions or the CI/CD platform already in use.
+
+### CI stages
+
+1. Checkout the repository.
+2. Identify the relevant project or projects.
+3. Restore dependencies.
+4. Compile the application.
+5. Run unit and integration tests.
+6. Run code-quality and security checks.
+7. Publish versioned deployment artifacts.
+8. Store the artifacts in an appropriate artifact repository.
+
+### CD stages
+
+1. Select the artifact produced by a successful CI run.
+2. Deploy to a development or test environment.
+3. Run smoke tests and health checks.
+4. Obtain approval before production deployment, if required.
+5. Deploy to the relevant IIS application or applications.
+6. Verify application and database compatibility.
+7. Preserve a rollback path.
+
+### Example workflow
+
+```text
+Pull Request
+    |
+    v
+Build and Test
+    |
+    v
+Quality and Security Checks
+    |
+    v
+Merge to Main
+    |
+    v
+Publish Artifact
+    |
+    v
+Deploy to Test IIS
+    |
+    v
+Smoke Tests
+    |
+    v
+Approval
+    |
+    v
+Deploy to Production IIS
+    |
+    v
+Post-Deployment Validation
+```
+
+This is a proposed workflow, not a description of the existing pipeline.
+
+### Deployment Security
+
+- Prefer short-lived AWS credentials through GitHub Actions OIDC where supported.
+- Avoid storing long-lived AWS access keys in source code.
+- Restrict deployment permissions.
+- Secure credentials and application secrets.
+- Use network controls and secure deployment channels.
+- Avoid exposing sensitive medical data in pipeline logs or test artifacts.
+
+---
+
+## 7. Versioning and Release Management
+
+The release strategy should reflect the application's actual deployment boundaries.
+
+### Option A: One application release
+
+If the UI and APIs are tightly coupled and deployed together, use a shared application release version.
+
+### Option B: Independent component releases
+
+If APIs are independently buildable and deployable, each component can have its own release version.
+
+For example:
+
+```text
+rad365-api1-v1.4.0
+rad365-api2-v2.1.0
+rad365-ui-v1.8.0
+```
+
+These are examples, not actual RAD365 versions.
+
+### Build identification
+
+Each artifact should have a unique identifier, such as:
+
+- A semantic version.
+- A Git tag.
+- A Git commit SHA.
+- A CI build number.
+
+For production traceability, record the source commit, build number, artifact location, and deployment environment.
+
+A Git commit SHA is a useful immutable build identifier, but it is not a replacement for a human-readable release version when one is needed.
+
+### Database releases
+
+Database changes should have their own controlled migration process.
+
+- Version database migrations.
+- Test migrations against representative environments.
+- Review destructive changes carefully.
+- Back up important data before risky changes.
+- Use backward-compatible changes when application and database releases are not simultaneous.
+- Define recovery procedures.
+
+Application rollback does not automatically reverse database changes. Database rollback must be designed separately.
+
+---
+
+## 8. Storage Architecture for Medical Documents and X-rays
+
+RAD365 needs a storage design suitable for medical images and documents.
+
+Amazon S3 is a strong candidate for object storage, but we must confirm the data formats, access patterns, compliance obligations, scale, retention, and operational requirements before finalizing the design.
+
+### 8.1 Potential Architecture
+
+```text
+Doctors / Users
+      |
+      v
+UI hosted on IIS or another suitable platform
+      |
+      v
+RAD365 APIs
+      |
+      +--------------------+
+      |                    |
+      v                    v
+Relational Database     Object Storage
+(Amazon RDS, if          (Amazon S3,
+ appropriate)            if appropriate)
+      |                    |
+      v                    v
+Metadata, references,   Medical images,
+comments, permissions   PDFs, and documents
+```
+
+This is a candidate architecture, not a finalized design.
+
+### 8.2 What Goes into the Database?
+
+A relational database may hold metadata such as:
+
+- Document identifiers.
+- Patient or case references.
+- Document type and upload date.
+- Object-storage keys or references.
+- Doctor comments and workflow status.
+- Access-control relationships.
+
+Actual patient information should be stored and protected according to the application's requirements and applicable regulations.
+
+### 8.3 What Goes into Object Storage?
+
+S3 can store files such as:
+
+- JPEG and PNG images.
+- PDF documents.
+- DICOM medical imaging files.
+- Other supported medical document formats.
+
+S3 stores objects; it does not replace all application database functionality.
+
+A suitable database plus object storage is often more practical than storing large binary documents directly in a relational database, but the decision should be based on requirements and workload testing.
+
+### 8.4 Is S3 Sufficient?
+
+S3 may be sufficient as the primary object-storage layer for many workloads. However, the overall system may also need:
+
+- A relational database.
+- Backup and recovery procedures.
+- Encryption in transit and at rest.
+- Strict access control.
+- Audit logging.
+- Retention and lifecycle policies.
+- Versioning or other recovery controls.
+- Monitoring and alerting.
+- Appropriate data residency and compliance controls.
+- Secure access to medical files.
+
+For DICOM workloads, investigate whether the project needs a DICOM server, metadata indexing, image viewing, interoperability, or specialized medical imaging workflows. S3 alone does not provide those application features.
+
+Do not assume that S3 is unsuitable simply because the files are large or numerous. Its suitability depends on the requirements and design.
+
+### 8.5 Security Considerations
+
+Medical information is sensitive. The architecture should minimize unnecessary exposure of patient data.
+
+- Keep medical objects private by default.
+- Use least-privilege IAM permissions.
+- Use encryption and appropriate key management.
+- Prefer controlled access through the application or short-lived presigned URLs when appropriate.
+- Audit access to medical documents.
+- Define backup, recovery, retention, and deletion policies.
+- Confirm applicable legal and regulatory requirements before production use.
+
+---
+
+## 9. IIS, Containers, and AWS Hosting Options
+
+There is no need to migrate immediately to Kubernetes.
+
+| Option | When it may fit |
+|---|---|
+| IIS on EC2 | Existing Windows/.NET application that already runs reliably on IIS. |
+| Docker on a supported server | Useful when packaging and running the application as a container offers operational benefits. |
+| Amazon ECS | A managed container-orchestration option if RAD365 benefits from container-based deployment. |
+| Amazon EKS/Kubernetes | Useful when Kubernetes capabilities justify the additional operational complexity. |
+| .NET on Linux with Kestrel | A potential option for compatible applications, depending on framework and dependency support. |
+
+**Initial recommendation:** Automate the existing IIS deployment first. Evaluate containers only after understanding the application framework, dependencies, and operational requirements.
+
+If RAD365 uses older ASP.NET Framework components, Windows/IIS may remain the most practical option. If it uses modern ASP.NET Core, more hosting options may be available.
+
+---
+
+## 10. Immediate Action Plan
+
+Before designing the final pipeline, inspect the repository and current deployment environment.
+
+### Repository inspection checklist
+
+- [ ] Review the top-level folder structure.
+- [ ] Count the `.csproj` files.
+- [ ] Identify the `.sln` files.
+- [ ] Determine whether each API has its own project.
+- [ ] Identify shared class libraries and project references.
+- [ ] Determine whether the UI is a separate application.
+- [ ] Inspect the existing database deployment scripts.
+- [ ] Inspect the existing API and UI deployment scripts.
+- [ ] Identify how the application is built and published today.
+- [ ] Determine the current branching and release strategy.
+
+### Framework and hosting checklist
+
+- [ ] Determine whether the application uses ASP.NET Core or ASP.NET Framework.
+- [ ] Identify the .NET version from project files and configuration.
+- [ ] Confirm the Windows Server and IIS versions.
+- [ ] Identify how each application is configured in IIS.
+- [ ] Determine how secrets and environment-specific settings are supplied.
+- [ ] Confirm whether each API can be deployed independently.
+
+### Storage checklist
+
+- [ ] Identify where medical images and documents are stored today.
+- [ ] Determine whether they are on EC2 disks, a database, a network file share, or S3.
+- [ ] Identify the file formats: DICOM, JPEG, PNG, PDF, or others.
+- [ ] Estimate current and projected storage volume.
+- [ ] Understand document access patterns and image-viewing requirements.
+- [ ] Confirm backup, recovery, retention, and compliance requirements.
+- [ ] Determine whether the application requires a specialized DICOM service.
+
+### CI/CD checklist
+
+- [ ] Identify the existing CI/CD tool and runner configuration.
+- [ ] Document the current manual deployment process.
+- [ ] Identify build commands and test commands.
+- [ ] Define artifact naming and versioning.
+- [ ] Separate CI validation from CD deployment.
+- [ ] Add test-environment deployment and smoke tests.
+- [ ] Define production approval and rollback procedures.
+- [ ] Introduce independent deployments only where project boundaries support them.
+
+---
+
+## 11. Questions to Resolve Before Finalizing the Design
+
+1. Are there separate `.csproj` files for the APIs, or are the APIs controllers within one application?
+2. Is the UI independently deployable?
+3. Which .NET framework and runtime versions are in use?
+4. Are database changes managed through a migration tool or custom scripts?
+5. Where are the medical documents and X-rays stored currently?
+6. Are the files ordinary images/PDFs, DICOM files, or a combination?
+7. What are the storage size, growth, availability, and recovery requirements?
+8. Which CI/CD platform and deployment credentials are currently used?
+9. Are production deployments allowed to be independent for each API?
+10. What security, privacy, audit, and regulatory requirements apply?
+
+---
+
+## 12. Final Recommendation
+
+Proceed in phases rather than redesigning the entire system immediately.
+
+**Phase 1 — Understand the current system**
+- Inspect the repository, project files, framework versions, IIS configuration, and deployment scripts.
+- Map the current application and database dependencies.
+
+**Phase 2 — Automate the existing deployment**
+- Build and test the appropriate project or projects.
+- Publish versioned artifacts.
+- Deploy to IIS using a secure and repeatable process.
+- Add validation, approvals, and rollback procedures.
+
+**Phase 3 — Improve storage and security**
+- Assess S3 for medical-document object storage.
+- Evaluate the database requirements for metadata and workflow information.
+- Define access control, encryption, auditing, retention, and disaster recovery.
+
+**Phase 4 — Evaluate future architecture**
+- Consider independent API releases if the codebase supports them.
+- Evaluate containers and Amazon ECS if they provide measurable benefits.
+- Adopt Kubernetes only if the application's scale and operational needs justify it.
+
+The most important next step is to inspect the RAD365 repository and identify its real application boundaries. Once that is clear, we can design the correct CI/CD workflow and release strategy without adding unnecessary complexity.
