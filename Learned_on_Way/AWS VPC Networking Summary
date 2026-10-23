@@ -1,0 +1,124 @@
+# AWS VPC Networking Summary — Senior DevOps Interview Prep
+
+**Source:** Voice discussion (ChatGPT conversation \6adad0b1-dbe4-83ec-9940-d5fe408d9379\)  
+**Date:** 2025-06-22  
+**Purpose:** Quick-reference for senior DevOps interview preparation
+
+---
+
+## Key Concepts Covered
+
+| Concept | Description |
+|---------|-------------|
+| **Local Route** | Default route in every VPC route table enabling intra-VPC communication (no NAT/IGW needed) |
+| **Private Subnet Route Table** | Routes 0.0.0.0/0 to NAT Gateway for outbound internet access |
+| **Public Subnet Route Table** | Routes 0.0.0.0/0 to Internet Gateway |
+| **NAT Gateway** | Managed NAT in a **public subnet**; enables outbound-only internet for private resources |
+| **Internet Gateway (IGW)** | VPC-level gateway for bidirectional internet traffic; attached to the VPC |
+
+---
+
+## Corrected Traffic Flows
+
+### 1. EC2 (Private) to RDS (Private) — Same VPC
+\\\
+EC2 to Private Subnet Route Table to Local Route (10.0.0.0/16) to RDS
+\\\
+- **No NAT Gateway**, **No Internet Gateway**
+- Traffic stays entirely inside the VPC via the implicit local route
+
+### 2. EC2 (Private) to Internet
+\\\
+EC2 to Private Route Table (0.0.0.0/0) to NAT Gateway (in Public Subnet)
+    to Public Route Table (0.0.0.0/0) to Internet Gateway to Internet
+\\\
+- NAT Gateway **lives in the public subnet** but is **used by private subnets**
+- Return traffic follows the same path in reverse (stateful)
+
+---
+
+## Public vs Private Route Tables
+
+| Route Table | Associated Subnets | Default Route (0.0.0.0/0) Target |
+|-------------|-------------------|----------------------------------|
+| **Public** | Public subnets | Internet Gateway |
+| **Private** | Private subnets | NAT Gateway (in public subnet) |
+
+> **Key distinction:** The NAT Gateway *resides* in a public subnet but *serves* private subnets. It uses the IGW to reach the internet.
+
+---
+
+## NAT Gateway vs Internet Gateway — Quick Comparison
+
+| Feature | NAT Gateway | Internet Gateway |
+|---------|-------------|------------------|
+| **Direction** | Outbound-only (initiated from private) | Bidirectional |
+| **Placement** | Public subnet (one per AZ for HA) | VPC-level (one per VPC) |
+| **Use Case** | Private instances needing internet access | Public instances, NAT GW egress, VPN/DX |
+| **IP Address** | Elastic IP (static) | AWS-managed |
+| **Cost** | Per-hour + data processing | Free (data transfer charges apply) |
+
+---
+
+## Key Takeaways for Interviews
+
+1. **Local route is automatic** — Every VPC route table includes a local route for the VPC CIDR; no configuration needed for intra-VPC traffic.
+
+2. **NAT Gateway != Internet Gateway** — NAT GW is for *private* subnet egress; IGW is for *public* subnet ingress/egress and NAT GW egress.
+
+3. **NAT GW placement matters** — Deploy in a public subnet with a route to the IGW. For HA, use one NAT GW per AZ.
+
+4. **Security Groups + NACLs** — SGs are stateful (allow return traffic automatically); NACLs are stateless (explicit inbound/outbound rules needed).
+
+5. **No transitive routing** — VPC peering, Transit Gateway, or VPN required for cross-VPC/on-prem communication.
+
+---
+
+## Action Items for Next Discussion
+
+- [ ] **Deep-dive: Transit Gateway vs VPC Peering** — When to use each, scaling limits, cost comparison
+- [ ] **NAT Gateway HA patterns** — Single vs multi-AZ, failure scenarios, CloudWatch metrics to monitor
+- [ ] **VPC Flow Logs analysis** — Troubleshooting rejected traffic, identifying misconfigured routes
+- [ ] **IPv6 in VPC** — Egress-only Internet Gateway, dual-stack subnets, NAT64/DNS64
+- [ ] **Advanced routing** — Route table propagation (VPN/DX), prefix lists, Gateway Load Balancer integration
+
+---
+
+## Quick Reference Diagram (Text)
+
+\\\
+                         +-------------------------------+
+                         |         VPC (10.0.0.0/16)     |
+                         |                               |
+  Internet ------------->| Internet Gateway              |
+                         |           |                   |
+                         |           v                   |
+                         |  +-------------------+        |
+                         |  |  Public Subnet    |        |
+                         |  |  (10.0.1.0/24)    |        |
+                         |  |  +-----------+    |        |
+                         |  |  | NAT GW    |----+--------+
+                         |  |  | (EIP)     |    |        |
+                         |  |  +-----------+    |        |
+                         |  +--------+---------+        |
+                         |           |                  |
+                         |           v (0.0.0.0/0 to NAT)|
+                         |  +-------------------+        |
+                         |  | Private Subnet    |        |
+                         |  | (10.0.10.0/24)    |        |
+                         |  |  +---------+      |        |
+                         |  |  |  EC2    |      |        |
+                         |  |  +----+----+      |        |
+                         |  +-------|-----------+        |
+                         |          | (local route)      |
+                         |          v                     |
+                         |  +-------------------+        |
+                         |  |      RDS          |        |
+                         |  | (10.0.20.0/24)    |        |
+                         |  +-------------------+        |
+                         +-------------------------------+
+\\\
+
+---
+
+*Generated from voice discussion — review and expand before interview.*
