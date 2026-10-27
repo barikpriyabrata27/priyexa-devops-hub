@@ -41,3 +41,6 @@
   .topbar .brand .brand-logo{height:52px}
   .quick-filter-list{max-height:none}
 }
+
+/* Hands-on labs navigation */
+.lab-menu{position:relative;font-size:13px;color:var(--ink)}.lab-menu summary{cursor:pointer;list-style:none;font-weight:600}.lab-menu summary::-webkit-details-marker{display:none}.lab-menu summary::after{content:" ▾";color:var(--green)}.lab-menu summary:focus-visible,.lab-menu a:focus-visible{outline:2px solid var(--green);outline-offset:3px}.lab-menu-list{position:absolute;top:calc(100% + 12px);right:0;z-index:10;min-width:230px;padding:12px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}.lab-menu-list>span{display:block;padding:4px 8px;color:var(--muted);font:500 10px "DM Mono",monospace;letter-spacing:.1em}.lab-menu-list a{display:flex;justify-content:space-between;gap:15px;padding:10px 8px;text-decoration:none;color:var(--ink);white-space:nowrap}.lab-menu-list a:hover{background:var(--mint)}@media(max-width:720px){.topbar-actions{gap:12px}.lab-menu-list{right:-30px}.brand-logo{width:min(120px,22vw)}}
