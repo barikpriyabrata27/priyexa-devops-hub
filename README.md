@@ -230,6 +230,6 @@ content, pipelines, and manifests filled in.
 
 ## AWS scenario practice
 
-The Scenarios mode now includes 20 AWS interview decisions, each with immediate feedback, a model answer and AWS documentation links (reviewed 27 October 2026). The selector also retains the three VPC flow/command demonstrations. AWS decision answers are practice-only and are not saved or keyword-graded. Questions without a matching interactive lab explicitly say so; they do not link to unrelated demonstrations.
+The Scenarios mode now includes 20 AWS interview decisions, each with immediate feedback, a model answer and AWS documentation links (reviewed 27 October 2026). The selector also retains the three VPC flow/command demonstrations. AWS decision answers are practice-only and are not saved or keyword-graded. Each of the 20 questions links directly to a matching interactive AWS lab with changeable conditions, visual checks and read-only simulated observations. The Labs menu also opens the new lab library.
 
-Content: `quiz/aws-scenarios.js`. Interface: `quiz/aws-scenario-practice.js`. Run focused checks with `node --test tests/*.test.cjs`. The existing quiz and QFI banks remain unchanged.
+Content: `quiz/aws-scenarios.js`. Interface: `quiz/aws-scenario-practice.js`. Lab models: `quiz/aws-labs.js`. Lab viewer: `LABS/AWS/scenario-lab/`. Run focused checks with `node --test tests/*.test.cjs`. The existing quiz and QFI banks remain unchanged.

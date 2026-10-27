@@ -9,9 +9,9 @@
   panel.classList.toggle('hidden',!active);
   document.querySelector('.setup-footer').classList.toggle('hidden',active);
   document.querySelector('.step-label').classList.toggle('hidden',active);
-  document.querySelector('.panel-heading .mono-label').textContent=active?'20 AWS questions + 3 VPC demos':'20 questions / round';
+  document.querySelector('.panel-heading .mono-label').textContent=active?'20 AWS questions + matching labs':'20 questions / round';
   if(!active)return;
-  document.getElementById('cycle-label').textContent='20 AWS scenarios to explore';
+  document.getElementById('cycle-label').textContent='20 AWS labs to explore';
   event.stopImmediatePropagation();
   modes.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));
   document.querySelector('.filters').classList.add('hidden');
@@ -19,7 +19,7 @@
   render();
  },true);
  function render(){
-  panel.innerHTML='<h3>AWS scenario practice</h3><p>Work through 20 interview decisions with model answers, or revisit the three interactive VPC demonstrations. Choose a scenario below.</p><label for="scenario-choice">Question or demonstration</label><select id="scenario-choice"></select><div id="scenario-task"></div>';
+  panel.innerHTML='<h3>AWS scenario practice</h3><p>Work through 20 AWS interview decisions, then explore each one in its interactive lab. The three original VPC demonstrations are also available.</p><label for="scenario-choice">Question or demonstration</label><select id="scenario-choice"></select><div id="scenario-task"></div>';
   const select=panel.querySelector('select');
   const questions=document.createElement('optgroup');questions.label='AWS interview scenarios · 20 questions';
   AwsScenarios.forEach((item,index)=>questions.append(new Option(String(index+1).padStart(2,'0')+' · '+item.title,item.id)));
@@ -57,5 +57,23 @@
    event.preventDefault();
    const correct=VpcScenarios.validCommand(host.querySelector('input').value,table);host.querySelector('#command-feedback').classList.toggle('correct',correct);host.querySelector('#command-feedback').textContent=correct?'Correct. The lab shows simulated route-table output.':'Expected: aws ec2 describe-route-tables --route-table-ids '+table;
   };
+ }
+ // Initial bank loading must not overwrite the visible scenario-mode metadata.
+ const bankObserver = new MutationObserver(() => {
+  if (modes.querySelector('.selected')?.dataset.mode === 'scenarios') {
+   document.getElementById('cycle-label').textContent = '20 AWS labs to explore';
+   document.querySelector('.panel-heading .mono-label').textContent = '20 AWS questions + matching labs';
+  }
+  bankObserver.disconnect();
+ });
+ bankObserver.observe(document.getElementById('bank-count'), {childList:true});
+ // A lab's return link opens its exact question.
+ const requested = new URLSearchParams(location.search).get('scenario');
+ if (AwsScenarios.some(item => item.id === requested)) {
+  document.addEventListener('DOMContentLoaded', () => {
+   modes.querySelector('[data-mode="scenarios"]').click();
+   panel.querySelector('#scenario-choice').value = requested;
+   task(requested);
+  });
  }
 })();

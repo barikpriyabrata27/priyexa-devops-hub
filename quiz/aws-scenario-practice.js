@@ -72,7 +72,12 @@ globalThis.AwsScenarioPractice = {
       list.append(li);
     });
     references.append(list);
-    card.append(references, element('p', 'Matching interactive lab not available yet. Use the model walkthrough above; the three VPC labs remain available in the demonstration selector.', 'aws-lab-note'));
+    card.append(references);
+    const labLink = element('a', 'Go to interactive lab ↗', 'scenario-lab-link');
+    labLink.href = '../LABS/AWS/scenario-lab/?scenario=' + item.id;
+    labLink.target = '_blank';
+    labLink.rel = 'noopener';
+    card.append(labLink, element('p', 'Change the conditions and follow this scenario’s simulated flow. No AWS account or command execution.', 'aws-lab-note'));
     host.append(card);
     const nav = element('nav', undefined, 'aws-question-nav');
     nav.setAttribute('aria-label', 'AWS scenario navigation');
