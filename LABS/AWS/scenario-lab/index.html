@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e2b">
+  <title>AWS Scenario Lab · Priyexa</title>
+  <link rel="stylesheet" href="lab.css">
+  <script src="../../../quiz/aws-scenarios.js" defer></script>
+  <script src="../../../quiz/aws-labs.js" defer></script>
+  <script src="lab.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="../../../quiz/interview.html"><img src="../../../quiz/assets/priyexa-logo.png" alt="">Priyexa <span>AWS Scenario Lab</span></a><a id="question-link" href="../../../quiz/interview.html">← Back to question</a></header>
+  <main class="wrap">
+    <div class="intro"><p class="eyebrow">AWS / Interactive learning</p><h1 id="lab-title">Explore the scenario.</h1><p id="lab-description"></p><p class="simulation-note">Browser-only simulation · no AWS account needed · no commands executed</p></div>
+    <p id="link-notice" class="link-notice" role="status" hidden></p>
+    <label class="scenario-label" for="lab-choice">Choose a demonstration</label><select id="lab-choice"></select>
+    <div class="layout">
+      <aside class="card sidebar" aria-labelledby="controls-title">
+        <p class="eyebrow">01 / Experiment</p><h2 id="controls-title">Change the conditions</h2><p class="hint">Start with a fault, inspect its effect, then try a fix.</p>
+        <div id="conditions"></div>
+        <div class="sidebar-actions"><button id="working" class="primary" type="button">Use working example</button><button id="reset" class="text-button" type="button">Reset to the fault example</button></div>
+      </aside>
+      <div class="main">
+        <section class="card map" aria-labelledby="flow-title"><div class="section-head"><div><p class="eyebrow">02 / Follow the flow</p><h2 id="flow-title">Architecture & workflow</h2></div><span class="pill">Illustrative</span></div><p class="hint">Boxes represent services or workflow stages, not a packet-level network trace.</p><ol id="architecture" class="architecture"></ol><div class="outcome"><strong id="outcome-badge" class="badge"></strong><p id="outcome-text" role="status"></p></div></section>
+        <section class="card walkthrough" aria-labelledby="walkthrough-title"><div class="section-head"><div><p class="eyebrow">03 / Inspect the checks</p><h2 id="walkthrough-title">Step through the demonstration</h2></div><div class="play-controls"><button id="prev" type="button" aria-label="Previous check">← Back</button><button id="play" type="button">▶ Play</button><button id="next" type="button" aria-label="Next check">Next →</button></div></div><div id="steps" class="steps" aria-label="Demonstration checks"></div><div id="step-detail" class="step-detail" aria-live="polite"></div><p class="hint">Play pauses at a failed check. Change the relevant condition, then replay or continue.</p></section>
+        <section class="card terminal" aria-labelledby="terminal-title"><p class="eyebrow">04 / Observe the result</p><h2 id="terminal-title">Read-only simulation log</h2><p class="hint" id="terminal-hint"></p><pre id="terminal-output" tabindex="0" aria-label="Read-only simulated observations"></pre></section>
+        <section class="card explanation" aria-labelledby="lesson-title"><p class="eyebrow">05 / Take it back to practice</p><h2 id="lesson-title">Why this works</h2><p id="lesson"></p><details><summary>Model answer</summary><ul id="model-answer"></ul></details><h3>AWS references</h3><ul id="references" class="references"></ul></section>
+      </div>
+    </div>
+    <footer>Designed for learning · simplified readiness and access checks · passing this model does not validate a real AWS environment.</footer>
+  </main>
+</body>
+</html>
