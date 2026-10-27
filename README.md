@@ -227,3 +227,9 @@ contains a working Flask app + Docker + kind CI/CD pipeline, migrated from
 this repository's previous history. The rest of the linked repos are freshly
 created placeholders (`README.md` only) and still need their example
 content, pipelines, and manifests filled in.
+
+## AWS scenario practice
+
+The Scenarios mode now includes 20 AWS interview decisions, each with immediate feedback, a model answer and AWS documentation links (reviewed 27 October 2026). The selector also retains the three VPC flow/command demonstrations. AWS decision answers are practice-only and are not saved or keyword-graded. Questions without a matching interactive lab explicitly say so; they do not link to unrelated demonstrations.
+
+Content: `quiz/aws-scenarios.js`. Interface: `quiz/aws-scenario-practice.js`. Run focused checks with `node --test tests/*.test.cjs`. The existing quiz and QFI banks remain unchanged.

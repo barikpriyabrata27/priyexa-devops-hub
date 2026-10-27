@@ -9,9 +9,9 @@
   panel.classList.toggle('hidden',!active);
   document.querySelector('.setup-footer').classList.toggle('hidden',active);
   document.querySelector('.step-label').classList.toggle('hidden',active);
-  document.querySelector('.panel-heading .mono-label').textContent=active?'3 flows / 3 commands':'20 questions / round';
+  document.querySelector('.panel-heading .mono-label').textContent=active?'20 AWS questions + 3 VPC demos':'20 questions / round';
   if(!active)return;
-  document.getElementById('cycle-label').textContent='3 VPC demonstrations';
+  document.getElementById('cycle-label').textContent='20 AWS scenarios to explore';
   event.stopImmediatePropagation();
   modes.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));
   document.querySelector('.filters').classList.add('hidden');
@@ -19,12 +19,23 @@
   render();
  },true);
  function render(){
-  panel.innerHTML='<h3>VPC scenario practice</h3><p>Arrange a flow or practice an inspection command. These illustrative examples never execute commands.</p><label for="scenario-choice">Demonstration</label><select id="scenario-choice"></select><div id="scenario-task"></div>';
+  panel.innerHTML='<h3>AWS scenario practice</h3><p>Work through 20 interview decisions with model answers, or revisit the three interactive VPC demonstrations. Choose a scenario below.</p><label for="scenario-choice">Question or demonstration</label><select id="scenario-choice"></select><div id="scenario-task"></div>';
   const select=panel.querySelector('select');
-  Object.entries(VpcScenarios.cases).forEach(([id,c])=>select.add(new Option(c.title,id)));
+  const questions=document.createElement('optgroup');questions.label='AWS interview scenarios · 20 questions';
+  AwsScenarios.forEach((item,index)=>questions.append(new Option(String(index+1).padStart(2,'0')+' · '+item.title,item.id)));
+  const demos=document.createElement('optgroup');demos.label='VPC demonstrations · flow + command';
+  Object.entries(VpcScenarios.cases).forEach(([id,c])=>demos.append(new Option(c.title,id)));
+  select.append(questions,demos);
   select.onchange=()=>task(select.value);task(select.value);
  }
  function task(id){
+  const question=AwsScenarios.find(item=>item.id===id);
+  if(question){
+   AwsScenarioPractice.render(panel.querySelector('#scenario-task'),question,next=>{
+    panel.querySelector('select').value=next;task(next);panel.querySelector('#aws-question-title').focus();
+   });
+   return;
+  }
   const c=VpcScenarios.cases[id],host=panel.querySelector('#scenario-task'),table=c.source==='private'?'rtb-private':'rtb-public';
   host.innerHTML='<div class="scenario-task-grid"><section class="scenario-exercise"><p class="eyebrow">01 / Trace the journey</p><h4>Arrange the packet flow</h4><p>Use Up and Down to put the cards in order.</p><ol class="flow-cards"></ol><button type="button" class="secondary-button" id="check-flow">Check flow</button><p id="flow-feedback" class="scenario-feedback" role="status"></p></section><form id="command-form" class="scenario-exercise"><p class="eyebrow">02 / Inspect the route</p><h4>Inspect the source route table</h4><label for="scenario-command">Enter the AWS CLI command to describe '+table+'.</label><input id="scenario-command" maxlength="300" autocomplete="off" spellcheck="false" placeholder="aws ec2 …"><button class="secondary-button">Check command</button><p id="command-feedback" class="scenario-feedback" role="status"></p></form></div><a class="scenario-lab-link" target="_blank" rel="noopener" href="../LABS/AWS/vpc-routing-simulator/?scenario='+id+'">Go to lab ↗</a>';
   let order=c.steps.map((text,index)=>({text,index})).reverse();
