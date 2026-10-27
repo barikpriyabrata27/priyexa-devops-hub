@@ -44,3 +44,42 @@
 
 /* Hands-on labs navigation */
 .lab-menu{position:relative;font-size:13px;color:var(--ink)}.lab-menu summary{cursor:pointer;list-style:none;font-weight:600}.lab-menu summary::-webkit-details-marker{display:none}.lab-menu summary::after{content:" ▾";color:var(--green)}.lab-menu summary:focus-visible,.lab-menu a:focus-visible{outline:2px solid var(--green);outline-offset:3px}.lab-menu-list{position:absolute;top:calc(100% + 12px);right:0;z-index:10;min-width:230px;padding:12px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}.lab-menu-list>span{display:block;padding:4px 8px;color:var(--muted);font:500 10px "DM Mono",monospace;letter-spacing:.1em}.lab-menu-list a{display:flex;justify-content:space-between;gap:15px;padding:10px 8px;text-decoration:none;color:var(--ink);white-space:nowrap}.lab-menu-list a:hover{background:var(--mint)}@media(max-width:720px){.topbar-actions{gap:12px}.lab-menu-list{right:-30px}.brand-logo{width:min(120px,22vw)}}
+
+/* Scenario practice follows the hub's paper, mint and monospace palette. */
+.mode-grid{grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
+.mode-card{grid-template-columns:1fr;gap:9px;padding:18px;min-width:0}
+.mode-number{grid-row:auto}.mode-card>span:last-child{grid-column:1}
+.mode-card strong{font-size:18px;line-height:1.25}
+.mode-card strong small{display:block;font-size:11px;font-weight:500;margin-top:5px;color:var(--muted)}
+.mode-card:focus-visible,.scenario-practice button:focus-visible,.scenario-practice a:focus-visible{outline:3px solid var(--green);outline-offset:4px}
+.scenario-practice{border-top:1px solid var(--line);padding-top:24px}
+.scenario-practice h3{font-size:25px;letter-spacing:-.03em;margin:0 0 8px}
+.scenario-practice p{color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.scenario-practice label{display:block;font-size:13px;font-weight:600;margin:20px 0 8px}
+.scenario-practice select{font:inherit;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);max-width:100%;width:100%;color:var(--ink)}
+.scenario-practice h4{font-size:19px;margin:0 0 8px;letter-spacing:-.02em}
+.scenario-task-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:24px;margin-top:24px}
+.scenario-exercise{padding:24px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.scenario-exercise .eyebrow{font-size:10px;margin:0 0 10px}
+.flow-cards{display:grid;gap:10px;padding:0;list-style:none;counter-reset:flow;margin:20px 0}
+.flow-cards li{counter-increment:flow;display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:12px;border-radius:10px;background:var(--paper)}
+.flow-cards li:before{content:counter(flow,decimal-leading-zero);font:500 11px 'DM Mono',monospace;color:var(--green)}
+.flow-cards span{flex:1;font-size:13px;line-height:1.4}
+.flow-cards button{font:500 11px 'DM Mono',monospace;border:1px solid var(--line);border-radius:6px;background:white;color:var(--green);padding:8px;min-height:36px}
+.flow-cards button:hover:not(:disabled){background:var(--mint);border-color:var(--green)}
+.flow-cards button:disabled{opacity:.35;cursor:default}
+.scenario-practice .secondary-button{border-radius:8px}
+.scenario-practice input{display:block;width:100%;font:13px/1.6 'DM Mono',monospace;background:#10243a;color:#e4f5ec;border:1px solid #476890;border-radius:10px;padding:15px;margin:12px 0 16px}
+.scenario-practice input::placeholder{color:#b5c8d6}
+.scenario-practice input:focus,.scenario-practice select:focus{outline:3px solid var(--mint);outline-offset:2px}
+.scenario-feedback:empty{display:none}
+.scenario-practice .scenario-feedback{padding:12px 14px;border-radius:8px;border-left:3px solid var(--orange);background:#fff4e9;font-size:13px;color:var(--ink)}
+.scenario-practice .scenario-feedback.correct{border-color:var(--green);background:#eef6ed}
+.scenario-lab-link{display:inline-flex;align-items:center;gap:10px;margin-top:22px;padding:12px 18px;border-radius:10px;background:var(--green);color:white;text-decoration:none;font-weight:600}
+.scenario-lab-link:hover{background:#174a3b}
+@media(max-width:960px){.mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-task-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.topbar{flex-wrap:wrap}.topbar-actions{flex-wrap:wrap;margin-left:0;width:100%}.scenario-exercise{padding:18px}.setup-panel{padding:20px}}
+@media(max-width:440px){.mode-grid{grid-template-columns:1fr}.mode-card{min-height:0}.flow-cards li{flex-wrap:wrap}.flow-cards span{flex-basis:75%}}
+
+.scenario-task-grid{align-items:start}.scenario-practice form,.scenario-practice label{font-family:inherit}
+@media(max-width:440px){.flow-cards li{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto}.flow-cards span{grid-column:2 / -1}.flow-cards button:nth-of-type(1){grid-column:3}.flow-cards button:nth-of-type(2){grid-column:4}}
