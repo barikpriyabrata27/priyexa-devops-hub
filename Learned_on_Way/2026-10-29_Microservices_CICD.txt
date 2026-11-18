@@ -1,0 +1,17 @@
+29 October 2026 — Microservices and CI/CD
+Monorepo: one Git repository containing multiple applications. Microservices: independently deployable backend services aligned to business capabilities. React frontend plus one backend is not automatically microservices.
+
+Suggested structure:
+src/frontend/
+src/auth-service/
+src/payment-service/
+src/order-service/
+.github/workflows/
+kubernetes/
+Each independently deployable service has its own build configuration and often Dockerfile.
+
+Deployment with GitHub Actions: detect changed service paths, test affected service (including shared dependencies), build its image, tag with commit SHA, push to Amazon ECR, and update its own Kubernetes Deployment in EKS. Separate Kubernetes Services expose stable service endpoints; rolling updates replace pods. Production needs approvals, readiness checks, rollback, and API compatibility.
+
+Kubernetes is optional. On Linux, independently running services can use systemd, distinct ports, and HTTP APIs. GitHub Actions can build artifacts, transfer over SSH, and restart only the modified systemd unit. For high availability, use multiple instances and load balancing; a single service restart can interrupt requests.
+
+Example: order service port 8083 calls payment service port 8082 via HTTP. Same host: localhost:8082; different host: reachable IP/DNS:8082. Prefer authenticated HTTPS in production.
