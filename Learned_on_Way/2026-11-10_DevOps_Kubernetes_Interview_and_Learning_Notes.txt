@@ -1,0 +1,175 @@
+﻿DEVOPS / KUBERNETES LEARNING & MOCK INTERVIEW — 10 NOVEMBER 2026
+Session record • Senior DevOps / Platform Engineer preparation
+
+
+SESSION OVERVIEW
+Today’s session began as a mock interview covering professional introduction, CI/CD, deployment rollback, Kubernetes troubleshooting, Java memory, and Cloud Foundry. It then became a detailed Kubernetes architecture discussion covering Deployments, ReplicaSets, Pods, HPA, VPA, Metrics Server, EKS worker nodes, and networking.
+
+
+PART A — MOCK INTERVIEW QUESTIONS, ANSWERS AND FEEDBACK
+1. Tell me about yourself for a Senior DevOps role.
+Answer discussed: 14+ years total IT experience, database administration background, then DevOps; AWS/GCP, GitHub Actions, Jenkins, Bamboo, Python/Bash, security scanning. Score: 7/10. Improve by separating total IT from DevOps experience, highlighting Terraform, Docker, Kubernetes, and measurable results.
+
+
+2. Explain an end-to-end CI/CD pipeline.
+Answer discussed: push/PR triggers, build and tests, CodeQL/Veracode/Black Duck, publishing versioned artifacts to Nexus or GHCR, deployment to Linux/Windows/EKS/GKE, health checks and rollback. Score: 8/10. Improve by discussing quality gates, immutable artifacts, and one concrete example.
+
+
+3. A Java app version 2.5 fails health checks after deployment. How do you roll back?
+Answer discussed: blue-green or canary deployment; retrieve known-good version 2.4 from Nexus and redeploy, with health verification. Score: 7/10. Distinguish blue-green traffic switching from canary traffic percentages.
+
+
+4. How do you trigger rollback in GitHub Actions when a deployment health check fails?
+Answer discussed: failed command returns nonzero exit status; use a conditional step such as if: ${{ failure() && steps.health_check.outcome == 'failure' }}. Score: 7/10.
+
+
+5. What if both deployment and automatic rollback fail?
+Answer discussed: controlled redeploy of last known-good version, preserve diagnostics, prevent concurrent deployments, validate service. Score: 6.5/10.
+
+
+6. Describe a robust separate recovery workflow.
+Answer discussed: backup previous application directory before deployment; immediate restore on failure; separate recovery workflow using known-good artifact if automatic restore fails. Score: 9/10.
+
+
+7. One of three EKS Java Pods enters CrashLoopBackOff. How do you troubleshoot?
+Answer discussed: kubectl get pods, kubectl describe pod, kubectl logs, resource checks; also use kubectl logs <pod> --previous, inspect Events, exit code, probes and config. Score: 8/10.
+
+
+8. What does OOMKilled / exit code 137 mean?
+Answer: OOMKilled means memory exhaustion was detected; 137 = 128 + SIGKILL(9). Exit code 137 alone does not prove OOM.
+
+
+9. With a 512Mi memory limit, where do you set Java heap?
+Answer: Deployment environment variables (JAVA_TOOL_OPTIONS/JAVA_OPTS), image/startup script; not typically pom.xml. Leave headroom for non-heap memory.
+
+
+10. How is Java memory configured in Pivotal Cloud Foundry?
+Answer: manifest.yml sets application memory; Java buildpack memory calculator commonly derives heap allocation. Do not allocate the full app memory to -Xmx. Related answer rated 8/10.
+
+
+11. How do you troubleshoot a crashing PCF application?
+Answer: cf app java-app; cf logs java-app --recent; cf events java-app; cf env java-app. Do not use kubectl commands for a Cloud Foundry-only application. Score: 6/10.
+
+
+12. How do you inspect a crashed PCF instance?
+Answer: inspect application status, recent logs and events for Java exceptions, memory, startup, database or configuration failures.
+
+
+13. Difference between cf logs java-app and cf logs java-app --recent?
+Answer: first streams new logs continuously; second prints available recent buffered logs and exits.
+
+
+14. Explain Deployment, ReplicaSet and Pod.
+Answer discussed: Deployment defines desired state, image, replicas, rollout; ReplicaSet maintains matching Pods; Pod hosts one or more containers. Score: 6.5/10. Correction: replicas: 3 means three Pods, not three ReplicaSets; min/max scaling belongs to HPA, not ReplicaSet.
+
+
+PART B — KUBERNETES ARCHITECTURE CONCEPTS
+Deployment → ReplicaSet → Pods
+• Deployment YAML includes replicas, selector, Pod template, container image, ports and resources.
+• A Deployment typically creates/manages ReplicaSets; the ReplicaSet controller maintains desired Pod count.
+• Changing replicas from 3 to 5 creates two additional Pods without necessarily creating a new ReplicaSet.
+• Scheduler chooses a suitable worker node for an unscheduled Pod; kubelet and container runtime start its containers.
+• If a Pod is deleted, ReplicaSet creates a replacement. If only a container crashes within an existing Pod, kubelet may restart that container.
+
+
+HPA — Horizontal Pod Autoscaler
+• Changes number of Pods, e.g., 3 → 5, using CPU/memory or other supported metrics.
+• Usually configured in hpa.yaml; minReplicas, maxReplicas and target metrics.
+• CPU utilization targets are relative to CPU requests, not CPU limits.
+• HPA controller is built into Kubernetes; CPU/memory scaling requires a working resource metrics pipeline.
+
+
+VPA — Vertical Pod Autoscaler
+• Recommends or changes container CPU/memory requests, e.g., 250m/256Mi → 500m/512Mi.
+• Usually configured in vpa.yaml with targetRef, updatePolicy and resourcePolicy.
+• VPA components (recommender, updater, admission controller) generally need separate installation.
+• Depending on mode and cluster capabilities, applying changes may recreate Pods or update resources in place. VPA does not simply add Pods.
+• HPA and VPA may conflict if both control CPU/memory-related dimensions of the same workload; plan their combination carefully.
+
+
+How resource metrics reach HPA
+Linux kernel/cgroups measure usage → kubelet exposes resource statistics → Metrics Server periodically scrapes kubelets over HTTPS → Kubernetes metrics API → HPA controller reads metrics → updates Deployment scale.
+• Metrics Server typically runs as a separate Pod in kube-system on a worker node; it can collect from all nodes.
+• Metrics Server is not installed inside each application Pod.
+• Common checks: kubectl top nodes; kubectl top pods; kubectl get hpa; kubectl describe hpa <name>.
+• If Metrics API is unavailable, CPU/memory-based HPA cannot make normal decisions from those missing metrics.
+• VPA uses observed resource usage and recommendations over time, not a simple fixed CPU threshold.
+
+
+Worker nodes, Pods and containers
+• In EKS with EC2 nodes: EKS cluster → worker node (EC2) → Pods → containers.
+• One worker node hosts multiple Pods; one Pod can contain multiple containers.
+• Containers within one Pod share a network namespace and Pod IP; they can communicate via localhost and distinct ports.
+• Kubernetes schedules Pods, not independent containers inside a Pod.
+
+
+Kubernetes Pod networking
+• CNI = Container Network Interface; the standard for network plugin integration.
+• Amazon VPC CNI is commonly supplied with EKS and configures Pod networking and VPC-subnet IP assignment.
+• The aws-node DaemonSet normally runs one networking agent Pod per eligible worker node.
+• CNI sets up connectivity; it is not necessarily a packet-by-packet intermediary.
+• Pods on different worker nodes can communicate directly by Pod IP when routing and security rules permit; a Kubernetes Service is not required for direct IP traffic.
+• A Service gives stable DNS/virtual IP access to changing backend Pods. kube-proxy or an alternative data plane implements Service forwarding.
+• CoreDNS resolves Kubernetes Service names.
+• Example checks: kubectl get daemonset aws-node -n kube-system; kubectl get pods -n kube-system -l k8s-app=aws-node -o wide.
+
+
+PART C — SHORT REVISION QUESTIONS WITH ANSWERS
+Q1. What does replicas: 3 mean? A: Desired three Pods.
+Q2. Who replaces a deleted Pod? A: ReplicaSet controller.
+Q3. Who assigns a new Pod to a node? A: Scheduler.
+Q4. Who restarts a failed container in an existing Pod? A: Kubelet, under the Pod restart policy.
+Q5. What happens when replicas changes 3 → 5? A: Two additional Pods are created.
+Q6. HPA or VPA for more Pods? A: HPA.
+Q7. HPA or VPA for larger CPU/memory requests per Pod? A: VPA.
+Q8. Does HPA need its own separate controller installation? A: Usually no; resource metrics infrastructure is still required.
+Q9. Does VPA normally need installation? A: Yes.
+Q10. Where does HPA obtain CPU metrics? A: Kubernetes Metrics API, commonly backed by Metrics Server scraping kubelets.
+Q11. Is Metrics Server inside each app Pod? A: No, it runs separately.
+Q12. Can one Pod contain two containers? A: Yes.
+Q13. Can same-Pod containers use localhost? A: Yes.
+Q14. Can Pods on different nodes communicate by Pod IP without a Service? A: Yes, if networking permits.
+Q15. What does CNI stand for? A: Container Network Interface.
+Q16. What does aws-node do? A: Runs Amazon VPC CNI node networking agent.
+Q17. Does a DaemonSet generally run aws-node once per eligible node? A: Yes.
+Q18. Why use a Service? A: Stable discovery/access when Pod IPs change.
+Q19. Difference between cf logs app and cf logs app --recent? A: Live stream versus recent buffered logs.
+Q20. What does OOMKilled mean? A: Container terminated due to out-of-memory condition.
+
+
+PART D — HANDS-ON PRACTICE FOR NEXT SESSION
+1. Inspect deployment hierarchy: kubectl get deployments,replicasets,pods -o wide
+2. Scale an example Deployment from 3 to 5 and observe new Pods.
+3. Check Metrics Server with kubectl top pods and inspect kube-system.
+4. Inspect Amazon VPC CNI DaemonSet in EKS.
+5. Create a ClusterIP Service and trace Pod-to-Pod versus Service-to-Pod traffic.
+6. Study DNS, kube-proxy, CNI and network policies.
+7. Return to senior DevOps mock-interview questions after networking practice.
+
+
+NEXT TOPIC
+Continue Kubernetes networking: Pod-to-Pod traffic across EC2 worker nodes, Services (ClusterIP/NodePort/LoadBalancer), CoreDNS, kube-proxy, CNI and AWS VPC routing.
+
+
+Note: This document summarizes the discussion and paraphrases spoken answers; it is not a verbatim transcript.
+
+
+
+
+PART E — EKS CONTROL-PLANE UPGRADE INTERVIEW SCENARIO (ADDED 10 NOVEMBER 2026)
+Interview question: How would you upgrade the Kubernetes control plane in Amazon EKS?
+Answer framework:
+1. Assess the current and target versions, supported one-minor-version-at-a-time upgrade path, cluster health, deprecated Kubernetes APIs, workload compatibility, add-on versions, webhooks and tooling.
+2. Test the process in a non-production cluster, plan a maintenance window, communicate risks and prepare recovery procedures. EKS control-plane Kubernetes version upgrades cannot be downgraded.
+3. Initiate the EKS control-plane upgrade via console, CLI or infrastructure as code. Example (replace the target version with a supported one): aws eks update-cluster-version --name my-cluster --kubernetes-version <target-version> --region ap-south-1
+4. Confirm the upgrade completed and the API server is reachable; upgrade compatible managed add-ons such as VPC CNI, CoreDNS and kube-proxy according to AWS guidance.
+5. Upgrade managed node groups or self-managed EC2 workers through controlled rolling replacement, respecting PodDisruptionBudgets, readiness probes, replica availability and workload capacity.
+6. Validate application health, DNS, Pod networking, metrics, logs, CI/CD and autoscaling; monitor closely after the upgrade.
+Follow-up interview question: The EKS control plane has been upgraded from 1.32 to 1.33, but EC2 worker nodes remain on 1.32. Will applications immediately stop?
+Answer: No. Control plane and kubelet versions can temporarily differ within the supported Kubernetes/EKS version-skew rules. Existing workloads do not automatically fail just because the control plane moves ahead one minor version. Schedule compatible worker-node upgrades next; do not leave version skew unmanaged.
+Important nuance: The exact allowed version skew depends on Kubernetes version and EKS policy; it is not universally limited to exactly one minor version. Verify the applicable supported policy for the cluster.
+Short revision Q21: Who manages the EKS control plane? A: AWS.
+Short revision Q22: Can you downgrade an upgraded EKS Kubernetes control plane? A: No.
+Short revision Q23: Should worker nodes be upgraded before or after the control plane? A: Normally after the control plane, within the supported version-skew policy.
+Short revision Q24: Does a 1.33 control plane necessarily break 1.32 worker nodes? A: No; compatible versions can coexist temporarily.
+Short revision Q25: What protects workloads during rolling node upgrades? A: Sufficient replicas and capacity, readiness probes, PodDisruptionBudgets and monitoring.
