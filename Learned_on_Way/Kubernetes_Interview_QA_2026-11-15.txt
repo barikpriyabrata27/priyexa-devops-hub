@@ -1,0 +1,72 @@
+KUBERNETES INTERVIEW PREPARATION — 15 NOVEMBER 2026
+Morning walk session | Questions, model answers and deeper notes
+
+1. Q: A pod is in CrashLoopBackOff. How do you troubleshoot?
+A: kubectl get pods -n <ns>; kubectl describe pod <pod> -n <ns>; kubectl logs <pod> -n <ns> --previous (specify -c <container> for multi-container pods). Review exit codes, Events, application errors, probes, configuration, OOMKilled and dependencies.
+DEEP NOTE: CrashLoopBackOff means a container repeatedly starts, exits or is killed, and Kubernetes delays subsequent restarts. It is not itself the root cause. A failed liveness probe, app crash, missing configuration or out-of-memory kill may cause it.
+
+2. Q: Why is a pod Pending?
+A: Start with kubectl describe pod <pod> -n <ns> and Events. Check FailedScheduling, CPU/memory requests, node selectors/affinity, taints/tolerations and unbound PVCs. Container logs generally do not exist before a container starts.
+DEEP NOTE: Pending means the pod has been accepted but one or more containers have not been set up to run; it can include scheduling and image setup delays.
+
+3. Q: Three healthy nodes but FailedScheduling: Insufficient cpu. Fix?
+A: Review pod CPU requests versus node allocatable capacity and existing requests; right-size requests if justified, free capacity, or scale/add nodes. Actual CPU utilization alone does not determine scheduling.
+
+4. Q: A ClusterIP Service cannot be reached from another namespace. Check?
+A: Confirm Service and namespace, correct cross-namespace DNS name, port/targetPort, selectors, EndpointSlices and ready backend pods. Check NetworkPolicies, DNS and then CNI/service-routing components.
+DEEP NOTE: Cross-namespace Service access normally works. Example: backend-service.production.svc.cluster.local.
+
+5. Q: What IP types exist in Kubernetes?
+A: Node IP identifies a node (may be private and sometimes public); Pod IP identifies a pod on the pod network; ClusterIP is a virtual, internal Service IP.
+DEEP NOTE: ClusterIP is associated with the Service, not a dedicated physical node. A normal ClusterIP Service has one IPv4 address in a single-stack IPv4 cluster; dual-stack services can have one address per IP family. Pod IPs can change when pods are replaced.
+
+6. Q: Three application replicas on three nodes: how many ClusterIPs?
+A: Normally one ClusterIP for one Service, which distributes traffic to its eligible backend pods. Three pods have their own Pod IPs.
+
+7. Q: ClusterIP versus NodePort versus LoadBalancer?
+A: ClusterIP exposes a Service inside the cluster. NodePort additionally exposes it on a port of each node, subject to network reachability. LoadBalancer requests an external load balancer from a supported integration and can be internal or internet-facing.
+DEEP NOTE: kube-proxy commonly implements Service forwarding; some dataplanes such as Cilium replace kube-proxy. CNI enables pod networking, while CoreDNS resolves Service names.
+
+8. Q: Can private-subnet EKS worker nodes serve public traffic?
+A: Yes. Place an internet-facing ALB in public subnets and forward to node or pod targets in private subnets, with correct routes and security controls. Nodes need not have public IPs.
+
+9. Q: How do private worker nodes reach public container registries?
+A: Commonly through a NAT Gateway in a public subnet, whose route goes to an Internet Gateway. The private subnet's default route points to the NAT Gateway. ECR pulls may instead use appropriately configured ECR and S3 VPC endpoints.
+
+10. Q: How do you troubleshoot ImagePullBackOff?
+A: First inspect kubectl describe pod Events for the precise pull error. Verify registry/image/tag and registry permissions; check imagePullSecrets or node credential providers; then DNS, routing, NAT, firewalls and registry availability.
+DEEP NOTE: ImagePullBackOff indicates image retrieval has failed and kubelet is backing off retries. Common causes: wrong tag, missing image, unauthorized registry access, rate limits or connectivity problems. It differs from CrashLoopBackOff, where a container has started and subsequently failed.
+
+11. Q: What if image pull fails with 'unauthorized: authentication required'?
+A: Check the registry identity and permissions. For a private registry, create a Secret of type kubernetes.io/dockerconfigjson and reference it via imagePullSecrets on the pod or ServiceAccount. Ensure the Secret is in the SAME namespace as the pod.
+DEEP NOTE: An imagePullSecret provides image registry authentication; a ServiceAccount by itself is not automatically a Docker Hub credential. On EKS pulling from ECR, node IAM permissions or supported credential providers may be used instead.
+
+12. Q: Where do Kubernetes Secrets reside?
+A: Secret objects are submitted through the Kubernetes API and persisted in etcd as part of cluster state. They are namespace-scoped. Authorized kubelets can retrieve needed image pull credentials; the Secret does not need to be mounted in the application container.
+DEEP NOTE: Base64 encoding is not encryption. Use encryption at rest, RBAC, audit controls and secret rotation. A pod in production cannot directly reference an imagePullSecret in development; create or synchronize an appropriate Secret in production.
+
+13. Q: How can enterprise Safeguard credentials integrate with Kubernetes?
+A: Depending on product/provider support, use an external-secrets controller to synchronize values into namespace-scoped Kubernetes Secrets, or a compatible Secrets Store CSI provider to mount runtime secrets. Image pulls need credentials available before container startup, often via imagePullSecrets or a kubelet credential provider.
+DEEP NOTE: Confirm actual One Identity Safeguard integration support; do not assume a provider exists. Avoid embedding credentials in manifests or images.
+
+14. Q: What credentials are involved in GitHub Actions -> EKS -> private registry -> database?
+A: Separate deployment identity (GitHub OIDC to AWS, then EKS authorization/RBAC), image-pull identity (registry secret or ECR IAM mechanism), and application runtime identity (DB credentials or workload identity). Apply least privilege.
+
+15. Q: Does GitHub Actions OIDC require storing AWS access keys?
+A: No. GitHub issues an OIDC token and AWS STS can exchange it for short-lived role credentials, subject to a correctly restricted IAM trust policy. EKS cluster access and Kubernetes authorization must still be configured.
+
+QUICK COMMAND REFERENCE
+kubectl get pods -n <ns>
+kubectl describe pod <pod> -n <ns>
+kubectl logs <pod> -n <ns> --previous
+kubectl get svc -n <ns>
+kubectl get endpointslices -n <ns>
+kubectl get networkpolicy -n <ns>
+kubectl get secret <name> -n <ns>
+kubectl describe serviceaccount <name> -n <ns>
+
+NEXT STUDY TOPICS
+- End-to-end pod-to-pod vs pod-to-Service traffic, DNS, CNI and kube-proxy/eBPF
+- Secrets, ServiceAccounts, RBAC and workload identity
+- ImagePullBackOff hands-on lab with intentionally wrong tags and registry credentials
+- EKS private subnet routing and ALB target types
