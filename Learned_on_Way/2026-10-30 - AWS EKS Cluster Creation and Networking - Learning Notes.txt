@@ -1,0 +1,65 @@
+﻿AWS EKS Learning Notes — 30 October 2026
+Topic: Creating a Standard Amazon EKS Cluster (Control Plane, IAM, Networking, Logging)
+
+
+1. Core idea
+Amazon EKS provisions and manages the Kubernetes control plane automatically. You choose its configuration; AWS creates and operates the API server, scheduler, controller manager and etcd. In standard EKS without Auto Mode, creating the cluster does not automatically provision EC2 worker nodes.
+
+
+2. EKS cluster creation flow
+• AWS Console → Elastic Kubernetes Service → Clusters → Create cluster.
+• Select standard EKS (not Auto Mode); choose cluster name (example: my-eks-cluster) and a supported Kubernetes version.
+• Select a cluster IAM role (example: MyEKSClusterRole).
+• Choose VPC, subnets across at least two Availability Zones, and security group settings.
+• Choose Kubernetes API endpoint access (public, private, or both).
+• Configure optional control plane logs and compatible add-ons; review settings; create cluster.
+• Wait for Active status. Then create a managed node group for EC2 worker nodes.
+
+
+3. IAM basics
+Authentication answers “Who are you?” Authorization answers “What can you do?”
+IAM users are identities; IAM groups collect users; IAM roles are assumed to obtain temporary credentials. A trust policy controls who can assume a role; a permissions policy controls allowed actions.
+For the EKS cluster role, the EKS service principal (eks.amazonaws.com) assumes the role; the role is different from the EC2 node role. An EKS cluster role commonly uses AmazonEKSClusterPolicy.
+
+
+4. VPC, subnets and security groups
+VPC is a logically isolated AWS network. Subnets partition its IP space and belong to individual Availability Zones. Public/private subnet behavior depends on routes, not just IP ranges.
+Security groups are stateful network firewalls associated with network interfaces; they are not IAM policies. AWS creates a cluster security group. Additional security groups are optional depending on setup.
+
+
+5. Kubernetes API endpoints
+The EKS cluster endpoint is the address of the Kubernetes API server, not an endpoint on a worker node.
+• Public access: authorized clients can reach the API endpoint via the internet, subject to configured allowed CIDRs.
+• Private access: clients within the VPC or connected private networks can reach it privately.
+• Public and private: supports both paths.
+AWS assigns/manages endpoint addressing and DNS; you do not manually supply endpoint IP addresses. EKS-managed network interfaces in selected subnets support communication between AWS-managed control plane and VPC resources. Public/private API endpoint settings do not control exposure of deployed applications.
+
+
+6. CIDR example
+203.0.113.25/32 specifies exactly one IPv4 address (illustrative documentation address).
+203.0.113.0/24 covers 256 IPv4 addresses.
+0.0.0.0/0 covers all IPv4 addresses.
+For a restricted public EKS API endpoint, allow a trusted actual public IP with /32 when appropriate. If that public IP changes, the allowlist may need updating. Network access does not replace Kubernetes authentication and authorization.
+
+
+7. Control plane logging
+Enable selected EKS control plane logs to Amazon CloudWatch Logs for troubleshooting and auditing.
+Types: API server, audit, authenticator, controller manager, scheduler.
+Suggested learning selection: API server, audit, authenticator.
+After enabled and logs are published, find them under CloudWatch → Logs → Log groups → /aws/eks/my-eks-cluster/cluster.
+CloudWatch log ingestion/storage can incur charges. Application and container logs are separate from control plane logs.
+
+
+8. Add-ons
+Common compatible EKS add-ons include Amazon VPC CNI (Pod networking), CoreDNS (cluster DNS), and kube-proxy (Service network rules). Select compatible versions based on the cluster's Kubernetes version and configuration.
+
+
+9. Practical mental model
+Resource configuration → IAM permissions → networking → observability/logging is a useful checklist, but not every AWS resource needs all four or in that order. Other considerations include encryption, storage, scaling and cost.
+
+
+10. Next session
+Review the cluster settings and create the EKS cluster; verify Active status. Create an EKS managed node group with an appropriate node IAM role. Configure kubectl access, run kubectl get nodes, then deploy and inspect a sample application. Compare cluster control plane logs with Pod/application logs.
+
+
+Note: This document records a conceptual walkthrough. No AWS resources were actually created during the conversation.
