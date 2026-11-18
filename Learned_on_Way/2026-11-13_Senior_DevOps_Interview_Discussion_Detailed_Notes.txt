@@ -1,0 +1,107 @@
+﻿SENIOR DEVOPS INTERVIEW PRACTICE — DETAILED DISCUSSION
+Date: Friday, 13 November 2026
+Scope: Kubernetes security, Kyverno, GitOps, OOM troubleshooting, EKS NetworkPolicy and Amazon VPC CNI
+Note: These are expanded learning notes from the discussion, not a verbatim transcript or verified reproduction of the LinkedIn post.
+
+
+1. PREVENTING ROOT CONTAINERS WITH KYVERNO
+Question: How would you stop application containers running as root without disrupting existing workloads?
+Kubernetes containers can be configured with securityContext.runAsNonRoot: true and runAsUser: 1000. UID 0 means root. These settings belong to pod/container security configuration, whereas Kyverno is an additional policy engine that validates resource admission.
+Kyverno runs inside the cluster as its own pods, typically installed with Helm into the kyverno namespace. The Kubernetes API server invokes Kyverno admission webhooks when relevant resources are created or updated. The policy engine may allow or reject the admission request; the kubelet ultimately enforces runtime securityContext settings.
+Recommended migration: inventory workloads, introduce a Kyverno policy in Audit mode, identify workloads that violate it, update images/manifests and file permissions, validate in development/staging, then gradually switch to Enforce with explicit exceptions where justified. Enforce does not automatically kill already-running pods, but newly created replacement pods may be rejected.
+Interview phrasing: 'I would first audit noncompliant pods, remediate workloads and test rollout safety before enforcing non-root admission cluster-wide.'
+
+
+2. KYVERNO DEPLOYMENT ARCHITECTURE
+Kyverno is not a built-in EKS control-plane component. Its controllers run as ordinary Kubernetes workloads on eligible worker nodes. Multiple admission-controller replicas improve availability. Three Kyverno admission pods might be placed across three of ten workers; they do not need to run on all ten nodes. Every matching API admission request can be routed through the Kyverno Service to one of the available admission-controller pods regardless of where the application pod is scheduled.
+Important distinction: scheduler selects nodes for pods; ReplicaSet maintains desired pod count; kubelet starts and monitors containers; Kyverno admission validates API requests. Do not conflate these responsibilities.
+
+
+3. CENTRAL POLICY MANAGEMENT: GITHUB ACTIONS VS ARGO CD
+Proposed repository: kubernetes-security-policies, containing policies/disallow-root.yaml, Helm values, and .github/workflows/deploy-kyverno.yml. A GitHub Actions workflow can authenticate to AWS through OIDC, select the target EKS cluster with aws eks update-kubeconfig, install or upgrade a pinned Kyverno Helm chart, and apply version-controlled policy YAML.
+Illustrative commands:
+aws eks update-kubeconfig --region ap-south-1 --name <cluster-name>
+helm repo add kyverno https://kyverno.github.io/kyverno/
+helm repo update
+helm upgrade --install kyverno kyverno/kyverno --namespace kyverno --create-namespace --version <pinned-version> -f values.yaml
+kubectl apply -f policies/
+Use separate environments and approval gates for Dev, Staging and Production, and verify the admission controller is ready before applying enforcement changes.
+GitHub Actions commonly operates as push-based deployment: a workflow run applies desired configuration. Argo CD provides ongoing GitOps reconciliation and can detect/correct drift if self-healing is enabled. If an authorized person deletes a ClusterPolicy, the Kyverno controller may still run, but that deleted policy no longer protects admission until restored. Rerunning the GitHub Actions workflow can restore it; Argo CD can automatically reconcile it when configured.
+
+
+4. TROUBLESHOOTING POLICY-REJECTED DEPLOYMENTS
+First inspect the GitHub Actions deployment step or kubectl apply output: an admission rejection can happen before the application pod exists, so kubectl describe pod or kubectl logs for that rejected pod may be impossible. Capture the exact webhook, policy and rule error.
+Useful checks:
+kubectl get clusterpolicies
+kubectl describe clusterpolicy <policy-name>
+kubectl get pods -n kyverno
+kubectl logs -n kyverno deployment/kyverno-admission-controller --all-containers=true
+Compare policy versions, resource labels, namespaces, pod securityContext and recent changes. Avoid simply disabling security rules to make a deployment pass. Distinguish a policy rejection from a webhook timeout or unavailable controller.
+
+
+5. WHEN ALL KYVERNO ADMISSION CONTROLLERS FAIL
+Scenario: 50 applications in EKS, three Kyverno admission replicas unavailable, and webhook failurePolicy set to Fail. Matching new admission requests can be rejected because the webhook cannot be reached; existing running application pods are not automatically terminated by that outage.
+Triage sequence: kubectl get pods -n kyverno -o wide; kubectl describe pod <name> -n kyverno; kubectl logs <name> -n kyverno --previous; inspect events, node health/capacity, controller resource requests/limits, recent chart changes, and readiness failures. Check whether all replicas share a misconfiguration or a dependency issue.
+Changing failurePolicy to Ignore may restore admissions but reduces security guarantees; it should not be the default fix. Prefer restoring controller health, redundancy and webhook connectivity.
+
+
+6. OOMKILLED, MEMORY LIMITS AND VPA
+If a container has a 512 MiB memory limit and attempts to consume around 700 MiB, it can be terminated with OOMKilled. Kubernetes does not automatically raise the fixed memory limit merely because demand increases. A container may hit its own memory limit even when its worker node has spare memory.
+Troubleshooting commands:
+kubectl describe pod <pod> -n kyverno
+kubectl logs <pod> -n kyverno --previous
+kubectl top pod -n kyverno --containers
+kubectl top nodes
+Inspect requests versus limits, previous logs, traffic, policy complexity, rollout history and node pressure. kubectl exec may not work if the container is crashing repeatedly. kubectl top shows container-level CPU/memory, not a process-by-process breakdown.
+VPA means Vertical Pod Autoscaler, not VCA. Depending on configuration and Kubernetes support, VPA can recommend or update resource requests and in some cases limits; it is not guaranteed to prevent a sudden OOM. Some update strategies replace pods; supported in-place resizing can avoid replacement. HPA scales replica count horizontally; VPA adjusts or recommends resource allocations vertically.
+
+
+7. NETWORKPOLICY TROUBLESHOOTING IN EKS
+Scenario: Service A could connect to Service B yesterday, but traffic fails after security policies were added. Start by identifying namespaces, labels, source and destination pods, ports and exact error (timeout, refused connection, DNS error, HTTP response).
+Commands:
+kubectl get networkpolicy -A
+kubectl get networkpolicy -n production
+kubectl describe networkpolicy <policy-name> -n production
+kubectl get pods -n production --show-labels
+kubectl get svc,endpoints -n production
+kubectl logs <service-a-pod> -n production
+kubectl exec -n production <service-a-pod> -- curl -v http://service-b:8080
+Ingress rules control traffic entering selected destination pods; egress rules control traffic leaving selected source pods. When both directions are isolated, both sides must allow the connection. Policies are additive allow rules, not ordered firewall deny rules. Verify selectors, namespaces and protocol/port rather than broadly opening all traffic.
+A failed curl does not prove a NetworkPolicy block: investigate DNS, Service selectors/endpoints, application listening ports, readiness and network routing too.
+
+
+8. WHAT IS CNI?
+CNI stands for Container Network Interface, not Cloud Network Interface. In Kubernetes, a CNI-compatible plugin helps configure pod network interfaces and connectivity. Amazon VPC CNI is a common EKS choice; Calico, Cilium and Flannel are other networking options with different capabilities.
+A NetworkPolicy is an API resource specifying allowed traffic. Enforcement requires a compatible, properly configured networking implementation. On Amazon EKS, Amazon VPC CNI NetworkPolicy enforcement must be enabled and supported by the cluster setup; defining a policy by itself is not proof that packets are being filtered.
+The scheduler places pods on nodes; the CNI provides pod networking. If Service A is on Worker Node 1 and Service B on Worker Node 3, the networking stack enables inter-node pod traffic, while Services and kube-proxy or equivalent dataplane components help implement Service connectivity.
+
+
+9. AWS-NODE DAEMONSET AND NETWORK-POLICY AGENT
+In a typical EKS cluster using Amazon VPC CNI, a DaemonSet called aws-node runs an aws-node pod on each eligible worker node. Thus three eligible worker nodes normally mean three aws-node pods.
+The aws-node container runs the main VPC CNI/IP address management functionality. When the network-policy feature is enabled, an aws-network-policy-agent container may also be present in the same pod to enforce Kubernetes NetworkPolicies using eBPF. Pod is the scheduling unit; containers share the pod's execution environment but have separate logs.
+Commands:
+kubectl get daemonset aws-node -n kube-system
+kubectl get pods -n kube-system -l k8s-app=aws-node
+kubectl describe pod <aws-node-pod> -n kube-system
+kubectl logs -n kube-system <aws-node-pod> -c aws-node
+kubectl logs -n kube-system <aws-node-pod> -c aws-network-policy-agent
+kubectl logs -n kube-system <aws-node-pod> -c aws-network-policy-agent -f
+If the agent container is absent, inspect the installed VPC CNI version and network-policy configuration before using that logs command. Agent logs are not necessarily a complete audit of denied packets. Detailed flow evidence may require explicitly configured NetworkPolicy logging or CNI-specific observability. Cilium deployments may use Hubble for network flow visibility.
+
+
+10. COMMAND CHEAT SHEET AND INTERVIEW TAKEAWAYS
+kubectl get networkpolicy -A — list policy objects in every namespace.
+kubectl describe networkpolicy <name> -n <namespace> — inspect selected pods, ingress/egress rules and peers.
+kubectl logs <pod> -n <namespace> — inspect application/container output; not policy rules.
+kubectl get pods -n kube-system -l k8s-app=aws-node — locate VPC CNI pods.
+kubectl logs -n kube-system <pod> -c aws-node — main CNI container logs.
+kubectl logs -n kube-system <pod> -c aws-network-policy-agent — policy-agent logs if installed.
+kubectl describe pod <pod> -n kyverno — see events, resource limits and termination reasons.
+kubectl logs <pod> -n kyverno --previous — previous crashed-container logs.
+Interview principle: Start from observed symptoms and error evidence; isolate the layer (application, Kubernetes API admission, network policy, CNI, node resources); implement the narrowest safe fix; verify and monitor.
+
+
+11. PROGRESS, GAPS AND NEXT SESSION
+Topics understood or practiced: Kyverno admission and Audit/Enforce, GitHub Actions OIDC-based multi-cluster deployment, webhook failure behavior, OOMKilled, VPA versus HPA, NetworkPolicy inspection, CNI terminology and aws-node architecture.
+Topics to revisit: read a real NetworkPolicy YAML with podSelector/namespaceSelector; test ingress versus egress isolation; distinguish network-agent logs from packet flow logs; identify CNI pod/container placement; practice diagnosing a denied connection without disabling security. The session ended before the final aws-node DaemonSet comprehension question was answered.
+Practice question for next time: In an EKS cluster with three eligible worker nodes, how many aws-node pods normally run, and why?
