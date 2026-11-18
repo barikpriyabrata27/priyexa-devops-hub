@@ -1,0 +1,83 @@
+﻿AI Agents Creation — Learning Notes
+Date: 2 November 2026
+Purpose: Plan a personal, local Windows-based, event-driven AI automation system, independent of freelance/client infrastructure.
+
+
+1. Goals
+• Run agents on a Windows PC with 32 GB RAM; avoid always-on cloud hosting.
+• Eventually support email summarization and draft replies, GitHub Actions failure investigation, and coding assistance.
+• Prefer event-driven execution so the model is only invoked when relevant work arises.
+• Require approval before sending email, changing code, deploying, rolling back, or performing remediation.
+
+
+2. Core concepts
+• AI model: provides language understanding and reasoning.
+• Agent: software that receives a goal/event, invokes tools and optionally a model, and returns an outcome.
+• Skill: reusable instructions/procedures for a task.
+• MCP server: exposes tools or data to an MCP-compatible client; it is not itself an agent or model.
+• Orchestrator: coordinates specialized agents.
+• RAG: retrieval-augmented generation, typically retrieval plus model-generated answers.
+• Retrieval-first with optional AI fallback: use a documented answer without model calls when a reliable match exists; invoke a model only for unresolved cases.
+
+
+3. Model access and costs
+• ChatGPT Plus and OpenAI API billing are separate; Plus does not automatically include API credits.
+• Codex CLI can be used via eligible ChatGPT sign-in within plan limits; unattended integrations may have different authentication/billing requirements.
+• GitHub Copilot and Claude have their own integration limits and terms. Office-provided Claude must not be used for personal automation without employer authorization.
+• Ollama with a smaller local model is another option; 32 GB RAM is adequate for the agent framework, but local model speed depends on CPU/GPU.
+• A local agent does not eliminate costs if it calls paid external APIs.
+• Agents running only on the PC cannot respond while it is off/asleep.
+
+
+4. Initial project: GitHub Actions Failure Analysis
+Preferred prototype:
+GitHub workflow failure → analysis workflow (workflow_run) → Windows self-hosted runner → Python log collector → local knowledge-base search → report.
+• Trigger only for completed workflows with conclusion=failure.
+• Collect relevant failed-job logs with least-privilege GitHub access; redact secrets and sensitive information.
+• Search verified fixes first; produce a report with matching evidence, root cause, and recommended action.
+• If no trustworthy match exists, optionally ask Codex or another authorized model to analyze sanitized logs.
+• Human reviews suggested fixes. No automatic production changes.
+• Prevent analysis workflow recursion and avoid executing untrusted repository code with privileged tokens.
+• Start with a separate repository such as bitwise-ai-agents (name is a proposal, not yet created).
+
+
+5. Knowledge base
+• A knowledge base can be Markdown files, SQLite records, or a vector index.
+• Start with structured Markdown incident files; optionally index them in SQLite.
+• Suggested fields: incident ID, technology, exact error signature, symptoms, context, root cause, verified resolution, validation steps, source, last verified date.
+• Example: aws-region input required → missing aws-region configuration → set the required workflow input.
+• Search exact error signatures and keywords first. Similarity alone is not proof of the same cause.
+• Later add locally generated embeddings and Chroma/FAISS for semantic search.
+• Only promote a new AI suggestion to a verified knowledge-base entry after testing and review.
+• Relevant existing Bitwise DevOps Hub documentation may provide background, but general tutorials should not be treated as verified incident resolutions.
+
+
+6. Event detection alternatives
+• GitHub Actions workflow_run: simple, GitHub-managed event trigger; can dispatch a job to an outbound-connected Windows self-hosted runner.
+• GitHub webhook: GitHub sends an HTTP POST with event data to a reachable HTTPS endpoint. The receiver validates the webhook signature and checks conclusion=failure; a home PC generally needs a secure public endpoint/tunnel.
+• Polling: a Windows scheduled script periodically checks GitHub API for failed runs; simplest network setup but not immediate.
+• A webhook is a notification mechanism, not an AI model or agent.
+
+
+7. Email agent later
+• Use authorized Gmail integration to read/classify emails and draft responses.
+• Begin with scheduled checks; Gmail push notifications via Pub/Sub need appropriate setup and delivery.
+• Require explicit approval before sending.
+• Protect personal information, credentials, and OAuth tokens.
+
+
+8. Minimal implementation phases
+Phase 1 — Create repository, install Python and GitHub CLI, confirm Windows runner and permissions.
+Phase 2 — Trigger on failed workflow; fetch logs and save a sanitized report.
+Phase 3 — Create 10–20 verified Markdown troubleshooting cases and a basic search script.
+Phase 4 — Add confidence/evidence checks, duplicate-run handling, and report artifacts.
+Phase 5 — Optionally integrate Codex/model fallback after verifying permitted auth and cost.
+Phase 6 — Expand to Gmail and coding agents; consider orchestration and MCP only when needed.
+
+
+9. Open decisions
+• Confirm the Windows runner is active and isolated from employer/client systems.
+• Decide repository name and which GitHub workflow to monitor.
+• Decide initial report destination: Actions artifact, GitHub issue, or email.
+• Decide whether the first version is retrieval-only or includes a model fallback.
+• Confirm permitted Codex/Copilot integration and usage limits before unattended operation.
