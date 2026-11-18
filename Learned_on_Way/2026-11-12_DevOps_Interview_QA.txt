@@ -1,0 +1,54 @@
+﻿DevOps Discussion & Mock Interview — 12 November 2026
+
+
+1. AWS HealthImaging POC: How does a doctor upload DICOM through React?
+Answer: React requests a presigned S3 upload URL from the authenticated .NET backend and uploads directly to S3. The backend validates the uploaded object and initiates StartDICOMImportJob for a unique S3 prefix. Track the asynchronous job until completion, then make image-set information available to the viewer. GitHub Actions should deploy infrastructure and application code, not process routine clinical uploads.
+
+
+2. Is Lambda mandatory for DICOM imports?
+Answer: No. The .NET backend can initiate the HealthImaging import after S3 upload. Lambda triggered by S3 events is an alternative. For production, validate DICOM content, enforce patient authorization, encrypt data, audit access, and handle retries and job status.
+
+
+3. What is AWS CloudFormation?
+Answer: AWS-native Infrastructure as Code (IaC). A YAML/JSON template defines resources; deploying it creates or updates a CloudFormation stack. Terraform uses HCL and maintains Terraform state; CloudFormation manages stack tracking in AWS.
+
+
+4. What is a CloudFormation stack?
+Answer: A logical collection of resources managed together by CloudFormation. Deploying the same template to the same stack updates it; deleting the stack normally deletes managed resources unless retention policies or protections apply.
+
+
+5. Why does Terraform need a state file?
+Answer: It maps Terraform resource addresses to real infrastructure IDs and stores tracked attributes. A normal terraform plan refreshes from AWS APIs, compares actual infrastructure with configuration, and proposes changes. Keep state secure and remote for teams; do not commit it to Git.
+
+
+6. What happens if an EC2 instance is deleted manually?
+Answer: The state may still list its ID until refresh. terraform plan queries AWS, finds the instance missing, and proposes creating a replacement if the configuration still requires it. terraform apply performs the change.
+
+
+7. What if EC2 changes manually from t3.micro to t3.large?
+Answer: A refreshed plan detects drift and normally proposes returning to t3.micro. If the change is approved, update the Terraform configuration to t3.large through a reviewed PR; a subsequent plan should show no change if everything matches. Do not manually edit the state file.
+
+
+8. How do you troubleshoot Kubernetes CrashLoopBackOff?
+Answer: kubectl get pods -n prod; kubectl describe pod POD -n prod; kubectl logs POD -n prod --previous. Check events, exit codes, OOMKilled, probes, ConfigMaps, Secrets, and application errors before choosing a fix.
+
+
+9. How do you investigate permission denied on a Kubernetes volume?
+Answer: Use kubectl exec -n prod POD -- id to inspect the process user and kubectl exec -n prod POD -- ls -ld /app/data for directory permissions, if the container stays alive. If not, inspect the Deployment and image. Correct ownership, mount permissions, or securityContext rather than defaulting to chmod 777. runAsUser/runAsGroup set process identity; pod-level fsGroup can help with supported volume permissions.
+
+
+10. How do you troubleshoot GitHub Actions deployment to private Windows EC2/IIS?
+Answer: Identify the failed step in Actions logs; verify the runner's VPN connection, routing, security groups, firewall and target deployment port (for example Test-NetConnection SERVER -Port 5986 for WinRM HTTPS). Then inspect Windows authentication, file transfer, NTFS permissions, IIS management rights, application pool, runtime and application logs.
+
+
+11. Can GitHub-hosted runners deploy over SoftEther VPN?
+Answer: Potentially. Automate a compatible VPN client, retrieve credentials securely, establish a tunnel, test the required port, deploy via PowerShell, then disconnect. SoftEther's native Windows client may require a virtual adapter or driver that must be tested on hosted runners. OIDC grants AWS API access; it does not establish VPN connectivity. Confirm client/protocol, authentication, unattended support, and permission to use ephemeral runners during the 11 AM RAD365 call.
+
+
+12. What if WinRM is reachable but deployment says Access is denied?
+Answer: Distinguish runner identity from the Windows deployment account. Verify remote authentication and session permissions, then NTFS rights using icacls C:\inetpub\wwwroot\RadExcel, and separately verify IIS application-pool management rights. NTFS Modify does not automatically allow restarting an IIS app pool. Grant least privilege and retest.
+
+
+Interview feedback
+Strengths: Sound troubleshooting order, drift detection, awareness of private network access, and separation of NTFS from IIS permissions.
+Practice areas: Write and apply a Kubernetes deployment.yaml; inspect securityContext and volumes; practise concise interview answers; confirm SoftEther connection details.
