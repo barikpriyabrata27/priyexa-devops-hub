@@ -1,0 +1,54 @@
+﻿AWS Networking Interview Questions and Answers
+3 November 2026
+
+
+Q1. What is the difference between a VPC and a subnet?
+Answer: A VPC is a regional virtual network. Each subnet belongs to one Availability Zone, and a VPC can contain subnets across multiple AZs.
+
+
+Q2. What makes a subnet public or private?
+Answer: A public subnet has a route to an Internet Gateway. Direct IPv4 internet access for an EC2 instance also requires a public IP address and appropriate security rules. A private subnet does not have a direct default route to the Internet Gateway.
+
+
+Q3. Where are an Internet Gateway, NAT Gateway, and route table configured?
+Answer: An IGW attaches to the VPC. A traditional zonal NAT Gateway is created in one subnet, typically a public subnet for internet egress. Route tables belong to a VPC and are associated with subnets; the NAT Gateway itself does not have a subnet route table attached directly to it. AWS also offers regional NAT Gateways, whose placement differs from zonal NAT Gateways.
+
+
+Q4. Can multiple private subnets use one zonal NAT Gateway, including from another AZ?
+Answer: Yes. Each private subnet's route table can contain 0.0.0.0/0 → NAT Gateway ID. A single zonal NAT Gateway can serve private subnets in multiple AZs, but cross-AZ data transfer charges and an AZ failure dependency may result.
+
+
+Q5. How do you design highly available outbound internet access for private EC2 instances?
+Answer: Common zonal design: create a public NAT Gateway in each AZ and route private subnets in that AZ to their local NAT Gateway. The public NAT subnet needs a route to an IGW, and a public NAT Gateway uses an Elastic IP for internet access. Regional NAT Gateway is another AWS option to evaluate.
+
+
+Q6. What happens if the AZ hosting a shared zonal NAT Gateway fails?
+Answer: Private instances in another healthy AZ may continue running but lose outbound internet access through that NAT Gateway until routing or NAT service is restored. Use per-AZ zonal NAT Gateways or an appropriate regional design to reduce the dependency.
+
+
+
+
+Q7. What is the difference between NAT Gateway and an internet-facing Application Load Balancer (ALB)?
+Answer: NAT Gateway lets private resources initiate outbound connections and receive responses; it does not accept unsolicited inbound connections for a website. An internet-facing ALB receives client HTTP/HTTPS requests and forwards them to application targets, including EC2 instances with only private IP addresses.
+
+
+Q8. How can internet users access an application on a private EC2 instance without giving the instance a public IP?
+Answer: Deploy an internet-facing ALB in public subnets across at least two AZs. Configure an HTTPS listener, a target group containing the private EC2 instance, and security groups permitting users to reach the ALB and the ALB to reach the application port. Traffic path: internet client → public ALB → private EC2 target. The public subnet routing must support IGW connectivity; the EC2 instance needs no public IP.
+
+
+Q9. Can an ALB accept HTTPS on port 443 and forward to a private EC2 application on port 8080?
+Answer: Yes. Configure an HTTPS listener on 443 with a TLS certificate, forwarding to a target group using port 8080 and the appropriate backend protocol. Allow inbound 8080 to the EC2 security group from the ALB security group.
+
+
+
+
+Q10. What is the difference between security groups and network ACLs?
+Answer: Security groups are stateful, allow-only rules attached to network interfaces. Network ACLs are stateless subnet-level allow/deny rules; return traffic needs explicit permission.
+
+
+Q11. How can private EC2 access S3 without traversing the public internet?
+Answer: Create an S3 Gateway VPC Endpoint and associate it with the private subnet route tables. Configure appropriate IAM, bucket, and endpoint policies.
+
+
+Q12. What is the difference between VPC peering and Transit Gateway?
+Answer: VPC peering provides direct connectivity between two VPCs but is nontransitive and does not support overlapping CIDRs. Transit Gateway is a hub-and-spoke routing service for connecting multiple VPCs and supported networks, with appropriate route table configuration.
