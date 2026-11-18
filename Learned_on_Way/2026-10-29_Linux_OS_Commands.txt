@@ -1,0 +1,29 @@
+29 October 2026 — Linux administration and troubleshooting
+Processes:
+ps aux                            # user-oriented process list
+ps aux --sort=-%mem | head -10    # top processes by memory percentage
+ps aux --sort=-%cpu | head -10    # top by CPU percentage
+ps -ef                            # Unix-style process listing
+ps -fp 2456                       # details of a PID
+top                               # live processes; Shift+M sorts by memory
+PID=process ID; %CPU=CPU usage; %MEM=resident memory as percentage of RAM.
+BSD ps options: a includes other users' processes, u user-oriented output, x processes without controlling terminals.
+
+Memory and disk:
+free -h                           # RAM and swap, pay attention to available
+swapon --show                     # active swap
+vmstat 1 5                        # CPU, memory, swap-in (si) and swap-out (so)
+df -h                             # filesystem capacity, not RAM
+du -sh /path                      # directory disk usage
+uptime                            # load averages
+
+Services and logs:
+systemctl status payment.service
+sudo journalctl -u payment.service -n 100  # last 100 journal entries
+sudo journalctl -u payment.service -f      # follow new entries (-u unit; -f follow)
+sudo journalctl -k | grep -i 'out of memory'
+tail -n 100 /path/to/application.log
+tail -f /path/to/application.log
+journalctl reads systemd journal; a journal.txt file is ordinary text unless specifically generated otherwise; PostgreSQL WAL is separate recovery logging.
+
+Troubleshooting sequence: identify CPU/memory/disk pressure; find owning PID; inspect service status and logs; confirm listening address and port; test connectivity; avoid killing production processes without understanding impact.
