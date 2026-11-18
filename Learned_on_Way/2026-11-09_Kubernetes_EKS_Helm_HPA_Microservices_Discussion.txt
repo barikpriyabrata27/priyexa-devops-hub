@@ -1,0 +1,163 @@
+﻿KUBERNETES / EKS / HELM / HPA — LEARNING DISCUSSION
+Date: 9 November 2026
+Format: Concepts, practical lab plan, and short interview Q&A
+
+
+1. PROJECT DECISION AND PRACTICE PLAN
+Build a mini e-commerce system with three Python FastAPI microservices: Order, Product, and Inventory. Order calls Product for details and Inventory for stock. Each service gets its own Docker image, Deployment, ClusterIP Service, and optional HPA. Start on the existing kind cluster (one control-plane and two worker nodes), then repeat on AWS EKS. Use Helm for packaging, Locust for load, Metrics Server for resource metrics, and later Prometheus/Grafana and GitHub Actions. Include a test-only CPU-load endpoint and deliberately simulate pod failures, unavailable dependencies, and insufficient node capacity.
+
+
+Suggested stages:
+1. Implement the three FastAPI services and health endpoints.
+2. Add Dockerfiles and local API tests.
+3. Deploy to kind with Helm; verify internal service discovery.
+4. Install/configure Metrics Server; set CPU requests and HPA.
+5. Generate load and observe replica scaling, placement, and recovery.
+6. Test Pending pods, probe failures, CrashLoopBackOff, and OOMKilled.
+7. Deploy to EKS with Terraform, ALB, and node autoscaling (Cluster Autoscaler or Karpenter); monitor costs.
+
+
+2. REQUEST FLOW AND KUBERNETES NETWORKING
+Typical external path: browser -> DNS -> HTTPS ALB listener (443) -> EKS backend targets -> application pods. ALB target mode matters: instance targets use NodePort; IP targets can send traffic directly to pod IP and port. Do not assume the actual ALB data path is always 443 -> Service port 80 -> pod port 8000.
+A Kubernetes Service may expose port 80 and forward to targetPort 8000. The application must listen on 8000. Pod labels (for example app: inventory) are selected by Service selectors; labels identify pods, not ports.
+Order-to-Inventory traffic inside the same namespace can use http://inventory-service:80 rather than the public ALB. ClusterIP and cluster DNS enable internal service discovery. kube-proxy or an alternative service-routing dataplane routes Service connections to ready backends. Balancing is generally connection-based, not guaranteed equal per HTTP request.
+
+
+3. YAML AND HELM
+deployment.yaml: pod template, labels, image, replicas, resource requests/limits, probes, container settings.
+service.yaml (or svc.yaml): selector, Service port, targetPort, Service type.
+hpa.yaml: minimum/maximum replicas, metrics targets, scaling behavior.
+Helm charts commonly contain Chart.yaml, values.yaml, templates/deployment.yaml, templates/service.yaml, and optionally templates/hpa.yaml. Helm renders templates to Kubernetes resources; not every chart has HPA. Useful inspection: helm list -A; helm get values RELEASE -n NAMESPACE; helm get manifest RELEASE -n NAMESPACE. A resource need not have a separate physical YAML file.
+
+
+4. NODES, SCHEDULING, AND AUTOSCALING
+In kind, nodes are Docker containers. In EKS, worker nodes commonly are EC2 instances; EKS also supports Fargate for suitable pods. One worker node can host many pods. Scheduler places pods based on allocatable resources, requests, constraints, and other factors, not necessarily equal distribution.
+HPA changes the desired number of pods; it does not increase CPU per pod or add nodes. VPA adjusts resource recommendations/requests and potentially limits depending on mode/configuration. Cluster Autoscaler and Karpenter provision additional worker-node capacity in suitable environments. In ordinary kind setups, HPA does not automatically create Docker worker nodes.
+CPU request is used for scheduling and CPU utilization percentage; CPU limit enforces a usage ceiling via throttling. Memory request influences scheduling; exceeding a memory limit may cause OOMKilled. Node allocatable capacity can be lower than nominal capacity.
+HPA CPU utilization = actual CPU usage / requested CPU * 100. HPA typically uses average pod utilization and applies tolerance, scaling behavior, and min/max replicas. Example: 2 pods at 120% average with a 60% target suggests 4 replicas, but maxReplicas 3 caps desired replicas at 3. minReplicas 2 prevents ordinary CPU-based scale-down below 2.
+
+
+5. HEALTH PROBES AND FAILURES
+Readiness probe: whether pod should receive new Service traffic; a failed readiness probe removes it from ready endpoints after propagation.
+Liveness probe: whether container needs restarting after repeated failures.
+Startup probe: protects slow initialization; until it succeeds, liveness/readiness probes are disabled. If it fails beyond its threshold, kubelet restarts the container. Example: periodSeconds 5, failureThreshold 15 gives approximately 75 seconds of checks, subject to probe timing.
+Database outage: readiness may fail if serving requests depends on the database; do not generally make liveness dependent on transient database availability. A frozen/unresponsive app can be detected by liveness. Probes must be configured; Kubernetes does not infer application-specific health automatically.
+Container crash: kubelet may restart it; readiness and EndpointSlices update Service destinations. Existing requests may still fail briefly. Repeated crashes can show CrashLoopBackOff. OOMKilled indicates memory exhaustion, commonly from a memory limit or node memory pressure.
+
+
+6. TROUBLESHOOTING COMMANDS
+kubectl get pods -n NAMESPACE
+kubectl describe pod POD -n NAMESPACE
+kubectl logs POD -n NAMESPACE
+kubectl logs POD --previous -n NAMESPACE
+kubectl get svc -n NAMESPACE
+kubectl get endpointslices -n NAMESPACE
+kubectl describe nodes
+kubectl top pods -n NAMESPACE
+kubectl top nodes
+For Pending pods, inspect pod Events for FailedScheduling and Insufficient cpu/memory; check requests versus node allocatable resources. For 503, inspect pod readiness, Service selectors, EndpointSlices, Ingress/ALB targets and health checks. kubectl top requires working metrics collection.
+
+
+7. SHORT INTERVIEW QUESTIONS AND ANSWERS
+Q1. Can ALB 443, Service 80, and Python app 8000 coexist?
+A. Yes. Each is a different listener or target mapping; actual ALB forwarding depends on target type and configuration.
+
+
+Q2. Where are pod labels and Service selectors configured?
+A. Pod template metadata.labels in Deployment; spec.selector in Service.
+
+
+Q3. What does Helm do?
+A. Renders chart templates using values and manages Kubernetes releases.
+
+
+Q4. Is an EKS worker node an EC2 instance?
+A. Commonly yes; kind nodes are Docker containers and EKS can also use Fargate.
+
+
+Q5. Must Order call Inventory through the public ALB?
+A. No. It can call the internal ClusterIP Service by DNS name.
+
+
+Q6. Will 100 requests be evenly spread across three pods?
+A. Not necessarily; Service balancing is typically per connection, and persistent connections may reuse a backend.
+
+
+Q7. If an Inventory pod fails, must the Service be edited?
+A. No. Readiness and endpoint updates ordinarily remove unready pods automatically, with a brief propagation delay.
+
+
+Q8. Database unavailable but process still running: readiness or liveness?
+A. Readiness, if database availability is essential to serve requests.
+
+
+Q9. App frozen and needs restart: readiness or liveness?
+A. Liveness.
+
+
+Q10. Slow application startup: which probe?
+A. Startup probe.
+
+
+Q11. Startup allowance 30 seconds but app needs 60?
+A. Repeated startup failures may trigger restarts and CrashLoopBackOff.
+
+
+Q12. Which command checks application logs?
+A. kubectl logs POD; use --previous for the prior crashed container.
+
+
+Q13. Which command shows pod events and scheduling failures?
+A. kubectl describe pod POD.
+
+
+Q14. What does OOMKilled mean?
+A. Out Of Memory Killed; investigate memory use, limits, and leaks.
+
+
+Q15. CPU limit one core but workload demands two: killed or slowed?
+A. Generally throttled, not killed solely for CPU overuse.
+
+
+Q16. HPA adds pods or CPU to existing pods?
+A. Pods (horizontal scaling).
+
+
+Q17. Who adds worker nodes when pods cannot be scheduled?
+A. Cluster Autoscaler or Karpenter, if configured; not kube-proxy.
+
+
+Q18. Four-core node, three cores already requested, new pod requests two: schedule?
+A. No, not on that node if only one allocatable core remains; Pending if no other eligible node fits.
+
+
+Q19. Node has one allocatable core free; pod requests 500m, limit 2 cores: schedule?
+A. Yes, if other scheduling constraints permit; scheduling uses requests.
+
+
+Q20. Pod requests 500m and uses 400m: utilization?
+A. 80%.
+
+
+Q21. Pod requests 500m and uses 600m: utilization?
+A. 120%; usage can exceed the request if allowed by limits and available CPU.
+
+
+Q22. Two replicas average 120% CPU, HPA target 60%: desired replicas?
+A. Approximately four, before caps and other HPA rules.
+
+
+Q23. HPA calculates four but maxReplicas is three: desired maximum?
+A. Three.
+
+
+Q24. Demand drops and minReplicas is two: minimum pods?
+A. Two.
+
+
+Q25. What is kube-proxy responsible for?
+A. Kubernetes Service network routing, not node autoscaling.
+
+
+8. NEXT SESSION
+At the laptop: verify existing kind cluster and Helm; scaffold FastAPI Product/Inventory/Order services; implement /health, /ready, and test-only /cpu-load; build images; create Helm chart; install Metrics Server; generate load; inspect HPA and pod placement. On AWS later, repeat with EKS and test ALB, autoscaling, and monitoring.
