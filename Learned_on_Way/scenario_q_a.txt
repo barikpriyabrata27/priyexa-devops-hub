@@ -1,0 +1,33 @@
+﻿SCENARIO-BASED QUESTIONS & ANSWERS
+Ongoing interview and practical troubleshooting question bank
+
+
+Date: 30 October 2026
+
+
+Q1. Amazon EKS: What should you do if the Kubernetes control plane goes down?
+Answer:
+1. Check the EKS cluster status and health issues in AWS Console. An Active status does not guarantee every API request succeeds.
+2. Test API access with kubectl cluster-info and kubectl get nodes. Failures may be caused by connectivity or permissions rather than control plane failure.
+3. Check kubeconfig, IAM/Kubernetes authorization, endpoint access settings, public access CIDRs, DNS, and network connectivity.
+4. Inspect CloudWatch control plane logs if enabled and AWS Health for relevant events.
+5. Correct customer-controlled configuration issues. AWS manages recovery of its EKS control plane infrastructure; escalate persistent AWS-side failures to AWS Support.
+Important: An individual control plane instance failure does not necessarily take down the highly available EKS control plane. Existing Pods may keep running during an API outage.
+
+
+Q2. Bash: How do you extract words written entirely in uppercase from a file?
+Answer:
+grep -oE '\b[A-Z]+\b' sample.txt
+Explanation: -o prints only matches; -E enables extended regex; [A-Z]+ matches one or more uppercase English letters; \b marks word boundaries (GNU grep). This extracts complete uppercase words rather than uppercase fragments inside mixed-case words. To exclude single-letter words, use grep -oE '\b[A-Z]{2,}\b' sample.txt.
+Example input: Hello WORLD / AWS is a CLOUD platform
+Expected uppercase words: WORLD, AWS, CLOUD.
+Note: grep -oE '[A-Z]+' alone also matches the H in Hello, so it does not enforce entire uppercase words.
+
+
+Q3. Bash: How do you count lines in a file?
+Answer:
+wc -l sample.txt
+Explanation: wc -l counts newline characters. If the last line has no terminating newline, the count can be lower than the number of visible text lines. To count extracted uppercase-word matches, pipe the grep command into wc -l.
+
+
+Future entries: Append new dated scenario questions, answers, example commands, and troubleshooting tips to this document.
