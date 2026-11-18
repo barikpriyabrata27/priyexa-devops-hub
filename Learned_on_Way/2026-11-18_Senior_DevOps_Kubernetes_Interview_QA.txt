@@ -1,0 +1,40 @@
+Senior DevOps and Kubernetes Interview Practice — 18 November 2026
+
+Session focus: Kubernetes troubleshooting and service networking.
+Practice plan: 15 minutes Kubernetes and 15 minutes senior DevOps interview questions.
+
+1. Q: How do you troubleshoot a pod in CrashLoopBackOff?
+A: Check kubectl get pods -n <namespace>, kubectl describe pod <pod> -n <namespace>, and kubectl logs <pod> -n <namespace> --previous. Examine container termination reason and exit code, application errors, environment variables and configuration, liveness/startup probes, OOMKilled events, and recent deployments. If a recent release caused the issue, assess rollback.
+Key point: CrashLoopBackOff describes repeated failed restarts, not the underlying cause.
+
+2. Q: What does OOMKilled mean, and how is exit code 137 related?
+A: OOMKilled indicates a container process was killed due to memory pressure or exceeding its memory limit. Exit code 137 commonly means termination by SIGKILL; check the container's lastState.terminated.reason to establish whether it was OOMKilled. Compare memory requests and limits, review kubectl top and historical memory metrics, and investigate application memory growth.
+Key point: A memory request influences scheduling; a memory limit constrains usage.
+
+3. Q: How is an evicted pod different from an OOMKilled container?
+A: Eviction is a kubelet decision under node pressure, such as memory, disk or PID pressure. OOMKilled is a process termination for out-of-memory conditions. A Deployment's ReplicaSet normally creates a replacement pod to maintain desired replicas if scheduling capacity is available.
+Key point: Investigate node conditions and pod events for eviction; inspect container termination state for OOMKilled.
+
+4. Q: How do kubectl top and Prometheus/Grafana differ?
+A: kubectl top provides recent CPU and memory utilization when Metrics Server is available. Prometheus and Grafana can provide historical trends and alerting, if configured. Use both current and historical measurements for intermittent failures.
+
+5. Q: How do you troubleshoot a Kubernetes Service that is not reaching its pods?
+A: Inspect kubectl get svc -n <namespace> and kubectl describe svc <service> -n <namespace>. Check Service selectors, pod labels, Service port and targetPort, and kubectl get endpointslices -n <namespace>. Confirm backend pods are running and Ready, and test internal Service connectivity before investigating Ingress or external load balancers.
+Key point: A Service with no eligible endpoints often has a selector/label mismatch or no ready matching pods.
+
+6. Q: How do you identify which pods belong to a Service?
+A: Read the Service selector, then run kubectl get pods -n <namespace> --show-labels or kubectl get pods -n <namespace> -l key=value. Compare the resulting pods with EndpointSlices and their readiness status. Check the correct namespace.
+
+Quick command reference:
+kubectl get pods -n <namespace>
+kubectl describe pod <pod> -n <namespace>
+kubectl logs <pod> -n <namespace> --previous
+kubectl top pods -n <namespace>
+kubectl describe node <node>
+kubectl get svc -n <namespace>
+kubectl describe svc <service> -n <namespace>
+kubectl get endpointslices -n <namespace>
+kubectl get pods -n <namespace> --show-labels
+
+Summary:
+Today's discussion covered CrashLoopBackOff, OOMKilled and exit code 137, memory requests versus limits, eviction and Deployment replacement, current versus historical resource metrics, and Service selectors, ports, readiness and EndpointSlices.
