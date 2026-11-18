@@ -1,0 +1,18 @@
+29 October 2026 — Networking and connectivity
+IP identifies destination interface; TCP port identifies listening service. Same subnet typically communicates directly using ARP; different subnets need routing via a gateway. Firewalls and application bind addresses matter.
+
+Example: payment host 192.168.2.20, TCP 8082.
+ping 192.168.2.20                  # ICMP echo test; blocked ICMP does not prove outage
+ip route get 192.168.2.20          # show selected route
+nc -vz 192.168.2.20 8082           # test TCP connection
+curl -v http://192.168.2.20:8082/health  # HTTP response if endpoint exists
+traceroute 192.168.2.20            # investigate hops (some hops may not respond)
+sudo ss -lntp                      # TCP listening sockets and process names
+sudo ss -lntup                     # TCP/UDP listening sockets
+sudo lsof -nP -iTCP:8082 -sTCP:LISTEN # owning process
+sudo firewall-cmd --list-all       # firewalld active zone settings, if installed
+
+127.0.0.1:8082 binds to loopback only. 0.0.0.0:8082 binds all IPv4 interfaces; network firewall still applies.
+curl sends requests, can test APIs and download: curl -LO https://example.com/file.zip
+wget primarily downloads: wget https://example.com/file.zip
+HTTP 404 = resource not found; HTTP 500 = server-side error response. Neither means basic TCP connectivity failed.
